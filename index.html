@@ -1,59 +1,930 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>當沖進場試算</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>當沖多股票觀察試算 V18</title>
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#6b7280;--blue:#2563eb;--green:#16834b;--red:#c93636;--line:#e5e7eb;--yellow:#fff4c7;--peach:#fff0e8}
-*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink)}
-.wrap{max-width:760px;margin:auto;padding:18px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.title{font-size:24px;font-weight:800}.tabs{display:flex;background:#e9edf5;padding:4px;border-radius:12px}.tab{border:0;background:transparent;padding:9px 18px;border-radius:9px;font-weight:700;cursor:pointer}.tab.active{background:#fff;box-shadow:0 1px 5px #0002;color:var(--blue)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #1111}.card h2{font-size:16px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);margin-bottom:6px}.field input{width:100%;font-size:20px;font-weight:700;padding:12px;border:1px solid #ccd2dc;border-radius:10px;background:#f9fafb}.manual-field input{background:#fff8db;border:2px solid #e3b341}.manual-badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:#fff1b8;color:#7a5a00;font-size:11px;font-weight:800;white-space:nowrap}.section-note{display:inline-flex;align-items:center;gap:6px;margin:-2px 0 12px;padding:5px 9px;border-radius:999px;background:#fff8db;color:#7a5a00;font-size:12px;font-weight:800}.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.result{padding:12px;border-radius:12px;background:#f7f9fc;border:1px solid var(--line)}.result small{display:block;color:var(--muted);margin-bottom:4px}.result strong{font-size:21px}.wide{grid-column:1/-1}.status{font-size:19px;font-weight:800;text-align:center;padding:13px;border-radius:12px}.ok{background:#e9f8ef;color:var(--green)}.bad{background:#fdecec;color:var(--red)}.warn{background:var(--yellow);color:#725b00}.actions{background:var(--peach)}.hint{font-size:13px;color:var(--muted);line-height:1.6}.checkrow{display:flex;gap:8px;align-items:center;margin:9px 0}.checkrow input{width:20px;height:20px}.footer{text-align:center;color:var(--muted);font-size:12px;margin:18px 0 8px}.symbol{width:100%;font-size:18px;padding:10px;border:1px solid #ccd2dc;border-radius:10px}
-@media(max-width:560px){.wrap{padding:12px}.top{align-items:flex-start;flex-direction:column}.grid,.result-grid{grid-template-columns:1fr 1fr}.title{font-size:21px}}
+:root{
+  --bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#6b7280;--line:#e5e7eb;
+  --green:#16834b;--red:#c93636;--amber:#9a6b00;--blue:#2563eb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;color:var(--ink)}
+.wrap{max-width:940px;margin:auto;padding:14px}
+.title{font-size:23px;font-weight:900;margin:5px 0 12px}
+.tabs{display:flex;background:#e9edf5;padding:4px;border-radius:12px;position:sticky;top:6px;z-index:5}
+.tab{flex:1;border:0;background:transparent;padding:11px;border-radius:9px;font-weight:900;cursor:pointer}
+.tab.active{background:#fff;box-shadow:0 1px 5px #0002}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:12px 0;gap:8px;flex-wrap:wrap}
+.bar-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;background:#172033;color:#fff;padding:10px 13px;border-radius:10px;font-weight:800;cursor:pointer}
+.btn.secondary{background:#fff;color:#334155;border:1px solid #d9e0e8}
+.btn.danger{background:#fff;color:#b42318;border:1px solid #f1c9c5}
+.stock{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 4px 14px #0000000b}
+.stock.entered{border:2px solid #9fc2ff;box-shadow:0 4px 16px #2563eb12}
+.stock-summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;background:#f7f9fc;border:1px solid #dfe5ee;border-radius:12px;cursor:pointer;font-weight:800}
+.stock.entered .stock-summary{background:#eef5ff;border-color:#c9dcff}
+.sum-main{flex:1;min-width:230px;line-height:1.55}
+.sum-toggle{font-size:12px;color:#52606d;white-space:nowrap}
+.stock-body{margin-top:10px}
+.stock-body.collapsed{display:none}
+.head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px;flex-wrap:wrap}
+.head b{font-size:17px}
+.head-actions{display:flex;gap:6px;flex-wrap:wrap}.quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.quick-btn{border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:800;cursor:pointer}.quick-btn:hover{background:#f8fafc}
+.mini{border:1px solid #e1e6ed;background:#fff;border-radius:8px;padding:7px 9px;cursor:pointer;font-weight:700}
+.mini.enter{border-color:#a9c8ff;color:#1659b7;background:#f1f6ff}
+.mini.entered{border-color:#83b3ff;color:#fff;background:#2563eb}
+.section-title{font-size:15px;font-weight:900;margin:14px 0 8px;padding-left:9px;border-left:4px solid #8fa8c4}
+.section-title.actual-title{border-left-color:#4f8ce5}
+.grid,.results{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.field label,.result small{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input{width:100%;padding:10px;border:1px solid #ccd2dc;border-radius:10px;font-size:18px;font-weight:750;background:#fff}
+.manual input{background:#fff8db;border:2px solid #e3b341}
+.actual-input input{background:#eef6ff;border:2px solid #6aa3e8}
+.bad-input{border-color:#dc2626!important;background:#fff3f3!important}
+.badge{background:#fff1b8;color:#725600;font-size:10px;font-weight:900;border-radius:99px;padding:2px 5px}
+.lookup,.validation{font-size:11px;margin-top:4px;color:#6b7280;min-height:15px}
+.lookup.oktxt,.validation.oktxt{color:#625a73}.lookup.errtxt,.validation.errtxt{color:#c62828}
+.calc{border-top:1px solid #e5e7eb;margin-top:12px;padding-top:4px}
+.result{background:#f6f8fb;border:1px solid #e2e6ec;border-radius:10px;padding:9px}
+.result strong{font-size:18px}
+.status{margin-top:8px;border-radius:10px;padding:9px;text-align:center;font-weight:800;line-height:1.45}
+.ok{background:#e8f7ef;color:#08733c}.warn{background:#fff2c7;color:#8a6400}.bad{background:#fde9e9;color:#c62828}.info{background:#eef6ff;color:#35506f}
+.checks{display:grid;gap:8px;margin-top:10px}.checks input{width:18px;height:18px;vertical-align:middle}
+.actual{margin-top:14px;padding-top:2px;border-top:2px dashed #d8dee8}
+.actual-note{margin:0 0 10px;padding:9px 10px;background:#eef6ff;border:1px solid #cfe1f7;border-radius:10px;color:#35506f;font-size:12px;line-height:1.65}.smart-action{margin-top:7px;padding:8px 10px;border-radius:10px;background:#fff7ed;border:1px solid #f6c790;color:#8a4b08;font-size:12px;font-weight:850;line-height:1.5}
+.live-panel{margin-top:12px;padding:12px;border:1px solid #cbd5e1;border-radius:14px;background:#f8fafc}
+.live-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.live-title{font-weight:900}
+.live-refresh{border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:800;cursor:pointer}
+.live-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.live-price-box,.live-pl-box{padding:12px;border-radius:12px;border:1px solid #e2e8f0;background:#fff}
+.live-price-box small,.live-pl-box small{display:block;color:#64748b;margin-bottom:4px}
+.live-price{font-size:26px;font-weight:950}
+.live-pl{font-size:26px;font-weight:950}
+.live-profit{color:#c62828}
+.live-loss{color:#08733c}
+.live-flat{color:#64748b}
+.live-meta{font-size:11px;color:#64748b;margin-top:6px;line-height:1.5}
+.live-error{color:#b45309;font-weight:750}
+.quote-state{display:inline-flex;align-items:center;gap:4px;margin-left:5px;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:850;border:1px solid #d1d5db;background:#fff;color:#475569}
+.quote-state.live{border-color:#e9a1a1;background:#fff1f1;color:#b42318}
+.quote-state.stale{border-color:#cbd5e1;background:#f8fafc;color:#64748b}
+.quote-state.close{border-color:#c7b8dc;background:#f5f1fa;color:#625a73}
+.smart-trigger-alert{display:none;margin-top:10px;padding:11px 12px;border-radius:12px;border:2px solid #e58b8b;background:#fff0f0;color:#a61b1b;font-weight:900;line-height:1.55}
+.smart-trigger-alert.show{display:block}
+.smart-trigger-alert .big{font-size:15px}
+.live-price.flash-up{animation:flashUp .7s ease}.live-price.flash-down{animation:flashDown .7s ease}@keyframes flashUp{0%{background:#ffdede;color:#c62828}100%{background:transparent}}@keyframes flashDown{0%{background:#e1f4e7;color:#08733c}100%{background:transparent}}
+@media(max-width:620px){.live-grid{grid-template-columns:1fr 1fr}}
+.empty{text-align:center;padding:32px;background:#fff;border:1px dashed #ccd2dc;border-radius:14px;color:#6b7280}
+.note{font-size:12px;color:#6b7280;line-height:1.55}
+.sum-ok{color:#08733c}.sum-warn{color:#b45309}.sum-bad{color:#c62828}.sum-profit{color:#c62828;font-weight:950;font-size:16px;line-height:1.8}
+.sum-loss{color:#08733c;font-weight:950;font-size:16px;line-height:1.8}
+.sum-flat{color:#64748b;font-weight:900;font-size:16px;line-height:1.8}
+.sum-entered{color:#1659b7}.profit{color:#c62828}.loss{color:#08733c}.flat{color:#64748b}
+.pl-hero{margin-top:12px;border-radius:16px;padding:14px 16px;text-align:center;border:2px solid #dbe3ee;background:#f8fafc;box-shadow:0 5px 14px #0000000c}
+.pl-hero .pl-label{font-size:12px;font-weight:800;letter-spacing:.08em;color:#64748b;margin-bottom:5px}
+.pl-hero .pl-amount{font-size:30px;font-weight:950;line-height:1.15}
+.pl-hero .pl-caption{font-size:12px;margin-top:5px;font-weight:750}
+.pl-hero.win{background:#fff0f0;border-color:#f1aaaa;color:#c62828}
+.pl-hero.lose{background:#ecf9f1;border-color:#9bd5b4;color:#08733c}
+.pl-hero.even{background:#f5f7fa;border-color:#d7dde5;color:#64748b}
+.info-panel{margin-top:12px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden}
+.info-toggle{width:100%;border:0;background:#f8fafc;padding:11px 14px;text-align:left;font-weight:800;color:#334155;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.info-body{display:none;padding:12px 14px;font-size:12px;color:#64748b;line-height:1.7}
+.info-body.open{display:block}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info-item{background:#f8fafc;border:1px solid #eef2f7;border-radius:10px;padding:9px}
+.info-item b{display:block;color:#334155;margin-bottom:3px}
+@media(max-width:620px){
+  .grid,.results,.info-grid{grid-template-columns:1fr 1fr}
+  .wrap{padding:10px}.title{font-size:20px}.sum-main{min-width:180px}
+}
+
+/* V30: 條件通過／確認完成使用中性灰紫色，避免與台股綠色虧損混淆 */
+.status.ok,
+.status.good,
+.status.success {
+  background:#f1eef6 !important;
+  color:#5f5870 !important;
+  border:1px solid #d8d1e2 !important;
+}
+.status.ok strong,
+.status.good strong,
+.status.success strong {
+  color:#5f5870 !important;
+}
+
+
+/* V31 台股配色：條件符合＝紅；不符合＝綠 */
+.status.ok,
+.status.good,
+.status.success,
+.ok {
+  background:#fff0f0 !important;
+  color:#c62828 !important;
+  border:1.5px solid #e99a9a !important;
+}
+.status.bad,
+.status.error,
+.bad {
+  background:#edf8f1 !important;
+  color:#08733c !important;
+  border:1.5px solid #9bd5b4 !important;
+}
+.status.ok strong,.status.good strong,.status.success strong,.ok strong {
+  color:#c62828 !important;
+}
+.status.bad strong,.status.error strong,.bad strong {
+  color:#08733c !important;
+}
+
 </style>
-</head><body><div class="wrap">
-<div class="top"><div class="title">📈 當沖進場試算</div><div class="tabs"><button class="tab" id="longTab">做多</button><button class="tab active" id="shortTab">做空</button></div></div>
-<div class="card"><h2>目前觀察標的</h2><input id="symbol" class="symbol" placeholder="例如：富喬"></div>
-<div class="card"><h2>① 前日高低點（±7% 範圍）</h2><div class="section-note">✍ 手動輸入</div><div class="grid"><div class="field manual-field"><label><span>前日低 A</span><span class="manual-badge">手動輸入</span></label><input id="prevLow" type="number" step="0.1" inputmode="decimal" value="94.9"></div><div class="field manual-field"><label><span>前日高 B</span><span class="manual-badge">手動輸入</span></label><input id="prevHigh" type="number" step="0.1" inputmode="decimal" value="105.5"></div></div><div class="result-grid" style="margin-top:12px"><div class="result"><small>前日高 +7%</small><strong id="plus7">—</strong></div><div class="result"><small>前日低 -7%</small><strong id="minus7">—</strong></div><div id="rangeStatus" class="status wide">—</div></div></div>
-<div class="card"><h2 id="patternTitle">② M 型態高低點</h2><div class="section-note">✍ 手動輸入</div><div class="grid"><div class="field manual-field"><label><span id="patternLowLabel">M 型態低點 C</span><span class="manual-badge">手動輸入</span></label><input id="patternLow" type="number" step="0.1" inputmode="decimal" value="97.7"></div><div class="field manual-field"><label><span id="patternHighLabel">M 型態高點 D</span><span class="manual-badge">手動輸入</span></label><input id="patternHigh" type="number" step="0.1" inputmode="decimal" value="98.8"></div></div></div>
-<div class="card"><h2>③ 自動計算</h2><div class="hint" style="margin:-4px 0 12px">T = 1 檔；系統會依各價格級距自動套用升降單位，跨級距時逐檔計算。</div><div class="result-grid"><div class="result"><small id="entryLabel">進場點 C − 2T</small><strong id="entry">—</strong></div><div class="result"><small id="stopLabel">停損點 D + 2T</small><strong id="stop">—</strong></div><div class="result"><small>停損差價金額 / 張</small><strong id="risk">—</strong></div><div class="result"><small>進場點 2.5% 金額</small><strong id="maxRisk">—</strong></div><div class="result wide"><small>進場條件公式</small><strong id="compareFormula">—</strong></div><div id="riskStatus" class="status wide">—</div></div></div>
-<div class="card"><h2>④ / ⑤ 進場確認</h2><label class="checkrow"><input type="checkbox" id="confirm1" checked><span id="confirm1Text">站穩＋突破 M 高點（且在委賣第一檔）</span></label><label class="checkrow"><input type="checkbox" id="confirm2" checked><span id="confirm2Text">大單 -45 度下垂</span></label><div id="tradeStatus" class="status ok" style="margin-top:10px">條件確認完成</div></div>
-<div class="card actions"><h2>⑥ 智慧單 MIT 設置</h2><div class="result-grid"><div class="result"><small>H. 停損點</small><strong id="mitStop">—</strong></div><div class="result"><small>I. 保本點</small><strong id="breakEven">—</strong></div><div class="result wide"><small id="mitTriggerLabel">獲利超過 I − 3T 才設定</small><strong id="mitTrigger">—</strong></div></div><p id="actionHint" class="hint"></p></div>
-<div class="footer">計算依照你提供的 Excel 規則製作。T = 1 檔，會依台股股價級距自動套用升降單位；進場點與停損點皆以 2T 計算。此工具僅做試算，不構成投資建議。</div>
+</head>
+<body>
+<div class="wrap">
+  <div class="title">📈 當沖多股票觀察試算</div>
+
+  <div class="tabs">
+    <button id="ts" class="tab active" onclick="sw('short')">🔴 做空觀察 <span id="cs">0</span></button>
+    <button id="tl" class="tab" onclick="sw('long')">🟢 做多觀察 <span id="cl">0</span></button>
+  </div>
+
+  <div class="bar">
+    <span class="note">做多／做空清單獨立，資料自動保存在此瀏覽器。</span>
+    <div class="bar-actions">
+      <button class="btn danger" onclick="clearToday()">清除今日清單</button>
+      <button class="btn" onclick="add()">＋ 新增觀察股票</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+
+  <div class="info-panel">
+    <button class="info-toggle" onclick="toggleInfo()">
+      <span>ℹ️ 計算規則與風控說明</span><span id="infoArrow">展開 ▼</span>
+    </button>
+    <div class="info-body" id="infoBody">
+      <div class="info-grid">
+        <div class="info-item"><b>T 檔價</b>&lt;10＝0.01｜10～&lt;50＝0.05｜50～&lt;100＝0.1｜100～&lt;500＝0.5｜500～&lt;1000＝1｜≥1000＝5</div>
+        <div class="info-item"><b>進場前預判</b>M／W 型態只用來預估進場、停損與 2.5% 風控；進場 ±2T、停損 ±2T，跨級距逐檔計算。</div>
+        <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
+        <div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
+        <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
+        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
+      </div>
+    </div>
+  </div>
 </div>
+
 <script>
-let mode='short'; const $=id=>document.getElementById(id); const ids=['prevLow','prevHigh','patternLow','patternHigh'];
-const n=id=>parseFloat($(id).value); const fmt=x=>Number.isFinite(x)?x.toLocaleString('zh-TW',{maximumFractionDigits:2}):'—';
-function tickSize(price){
-  if(price<10) return 0.01;
-  if(price<50) return 0.05;
-  if(price<100) return 0.1;
-  if(price<500) return 0.5;
-  if(price<1000) return 1;
+const K='watchV18';
+let mode='short';
+const liveQuotes={};
+let liveTimer=null;
+let db={short:[],long:[]};
+
+try{
+  const old=JSON.parse(localStorage.getItem(K) || localStorage.getItem('watchV8'));
+  if(old&&Array.isArray(old.short)&&Array.isArray(old.long)) db=old;
+}catch(e){}
+
+const $=id=>document.getElementById(id);
+const n=v=>{const x=parseFloat(v);return Number.isFinite(x)?x:NaN};
+const f=x=>Number.isFinite(x)?x.toLocaleString('zh-TW',{maximumFractionDigits:2}):'—';
+
+function normalizeRecord(s){
+  return {
+    name:s.name||'',code:s.code||'',A:s.A||'',B:s.B||'',C:s.C||'',D:s.D||'',
+    actualEntry:s.actualEntry||'',actualLots:s.actualLots||'',plannedExit:s.plannedExit||'',feeDiscount:s.feeDiscount||'',c1:!!s.c1,c2:!!s.c2,lookupMsg:s.lookupMsg||'',
+    collapsed:!!s.collapsed,entered:!!s.entered
+  };
+}
+db.short=db.short.map(normalizeRecord);
+db.long=db.long.map(normalizeRecord);
+
+function save(){
+  localStorage.setItem(K,JSON.stringify(db));
+  $('cs').textContent=db.short.length;
+  $('cl').textContent=db.long.length;
+}
+function tick(p){
+  if(p<10)return .01;
+  if(p<50)return .05;
+  if(p<100)return .1;
+  if(p<500)return .5;
+  if(p<1000)return 1;
   return 5;
 }
-function moveTicks(price,count,direction){
-  let p=Number(price);
+function mv(p,count,dir){
+  p=Number(p);
   for(let i=0;i<count;i++){
-    const probe=direction>0?p:Math.max(0,p-1e-9);
-    const t=tickSize(probe);
-    p=direction>0?p+t:p-t;
+    const probe=dir>0?p:Math.max(0,p-1e-9);
+    p+=dir*tick(probe);
     p=Math.round(p*100)/100;
   }
   return p;
 }
-function calc(){const A=n('prevLow'),B=n('prevHigh'),C=n('patternLow'),D=n('patternHigh'); $('plus7').textContent=fmt(B*1.07); $('minus7').textContent=fmt(A*.93); if(![A,B,C,D].every(Number.isFinite))return;
- let entry,stop,risk,maxRisk,be,trigger,rangeOK;
- if(mode==='short'){entry=moveTicks(C,2,-1); stop=moveTicks(D,2,1); be=(entry*1000-entry*3)/1000; trigger=be-.3; rangeOK=entry<=B*1.07 && entry>=A*.93;}
- else{stop=moveTicks(C,2,-1); entry=moveTicks(D,2,1); be=(entry*1000+entry*3)/1000; trigger=be+.4; rangeOK=entry<=B*1.07 && entry>=A*.93;}
- risk=Math.abs(stop-entry)*1000; maxRisk=entry*.025*1000;
- $('entry').textContent=fmt(entry);$('stop').textContent=fmt(stop);$('risk').textContent='$'+fmt(risk);$('maxRisk').textContent='$'+fmt(maxRisk);$('mitStop').textContent=fmt(stop);$('breakEven').textContent=fmt(be);$('mitTrigger').textContent=fmt(trigger);
- const pass=maxRisk<risk;
- $('compareFormula').innerHTML='2.5% 停損基準：$'+fmt(maxRisk)+'<br>本次停損金額：$'+fmt(risk);
- $('riskStatus').className='status wide '+(pass?'ok':'warn');
- $('riskStatus').textContent=pass?'✓ 2.5% 停損基準低於本次停損差價｜符合條件':'⚠ 2.5% 停損金額超過本次停損差價，謹慎評估是否入場';
- $('rangeStatus').className='status wide '+(rangeOK?'ok':'bad'); $('rangeStatus').textContent=rangeOK?'✓ 進場點位於前日 ±7% 範圍內':'✕ 進場點超出前日 ±7% 範圍，不做'; updateTrade(rangeOK,pass);
+function validPriceAtOrBeyond(start,target,dir){
+  let p=Number(start),guard=0;
+  if(!Number.isFinite(p)||!Number.isFinite(target))return NaN;
+  while(guard++<10000){
+    if((dir<0&&p<=target+1e-9)||(dir>0&&p>=target-1e-9)) return Math.round(p*100)/100;
+    p=mv(p,1,dir);
+  }
+  return NaN;
 }
-function updateTrade(){const checks=$('confirm1').checked&&$('confirm2').checked; $('tradeStatus').className='status '+(checks?'ok':'warn'); $('tradeStatus').textContent=checks?'✓ 進場確認完成':'尚有進場確認條件未勾選';}
-function setMode(m){mode=m;$('longTab').classList.toggle('active',m==='long');$('shortTab').classList.toggle('active',m==='short'); if(m==='short'){$('patternTitle').textContent='② M 型態高低點';$('patternLowLabel').textContent='M 型態低點 C';$('patternHighLabel').textContent='M 型態高點 D';$('entryLabel').textContent='進場點 C − 2T（依股價自動換檔）';$('stopLabel').textContent='停損點 D + 2T（依股價自動換檔）';$('confirm1Text').textContent='跌破 M 低點（且在委賣第一檔）';$('confirm2Text').textContent='大單 -45 度下垂';$('mitTriggerLabel').textContent='獲利超過 I − 3T 才設定';$('actionHint').textContent='操作提示：先按賣才是放空；停損 / 保本 / 鎖利觸發後按買。';}else{$('patternTitle').textContent='② W 型態高低點';$('patternLowLabel').textContent='W 型態低點 C';$('patternHighLabel').textContent='W 型態高點 D';$('entryLabel').textContent='進場點 D + 2T（依股價自動換檔）';$('stopLabel').textContent='停損點 C − 2T（依股價自動換檔）';$('confirm1Text').textContent='站穩＋突破 W 高點（且在委買第一檔）';$('confirm2Text').textContent='大單 45 度上揚';$('mitTriggerLabel').textContent='獲利超過 I + 3T 才設定';$('actionHint').textContent='操作提示：進場按買；停損 / 保本 / 鎖利觸發後按賣。';} calc();}
-ids.forEach(id=>$(id).addEventListener('input',calc));$('confirm1').addEventListener('change',()=>updateTrade());$('confirm2').addEventListener('change',()=>updateTrade());$('longTab').onclick=()=>setMode('long');$('shortTab').onclick=()=>setMode('short');setMode('short');
-</script></body></html>
+function isLegalPrice(p){
+  p=Number(p);
+  if(!Number.isFinite(p)||p<=0)return false;
+  let units;
+  if(p<10) units=p*100;
+  else if(p<50) units=(p-10)*20;
+  else if(p<100) units=(p-50)*10;
+  else if(p<500) units=(p-100)*2;
+  else if(p<1000) units=(p-500);
+  else units=(p-1000)/5;
+  return Math.abs(units-Math.round(units))<1e-7;
+}
+function validationText(value){
+  const p=n(value);
+  if(!Number.isFinite(p)) return {ok:true,text:''};
+  if(isLegalPrice(p)) return {ok:true,text:'✓ 合法台股檔位'};
+  return {ok:false,text:'⚠ '+f(p)+' 不是此價位的合法台股檔位'};
+}
+function sw(m){
+  mode=m;
+  $('ts').classList.toggle('active',m==='short');
+  $('tl').classList.toggle('active',m==='long');
+  render();
+}
+function add(){
+  db[mode].push(normalizeRecord({}));
+  save();render();
+  setTimeout(()=>{
+    const cards=document.querySelectorAll('.stock');
+    cards[cards.length-1]?.scrollIntoView({behavior:'smooth',block:'center'});
+  },20);
+}
+function del(i){
+  if(confirm('刪除這支觀察股票？')){
+    db[mode].splice(i,1);save();render();
+  }
+}
+function dup(i){
+  const c=normalizeRecord({...db[mode][i],entered:false,c1:false,c2:false,collapsed:false,actualEntry:''});
+  if(c.name)c.name+=' 複製';
+  db[mode].splice(i+1,0,c);save();render();
+}
+function clearToday(){
+  if(confirm('確定清除今天所有做多與做空觀察股票？此動作無法復原。')){
+    db={short:[],long:[]};save();render();
+  }
+}
+function setv(i,k,v){
+  db[mode][i][k]=v;save();
+  updateValidation(i,k);
+  calc(i);
+}
+function toggleCard(i){
+  const s=db[mode][i];if(!s)return;
+  s.collapsed=!s.collapsed;save();render();
+}
+function setPlannedExit(i,type){
+  const s=db[mode][i]; if(!s)return;
+  const act=actualCalc(s);
+  if(!act||act.invalid){alert('請先輸入合法的實際進場點');return;}
+  const value=type==='stop'?act.stop:act.be;
+  s.plannedExit=String(value);
+  save(); render();
+}
+function toggleEntered(i){
+  const s=db[mode][i];if(!s)return;
+  if(!s.entered){
+    const ae=n(s.actualEntry);
+    if(!Number.isFinite(ae)){
+      alert('請先輸入實際進場點，再標記為已進場。');
+      s.collapsed=false;save();render();return;
+    }
+    if(!isLegalPrice(ae)){
+      alert('實際進場點不是合法台股檔位，請先確認價格。');
+      s.collapsed=false;save();render();return;
+    }
+  }
+  s.entered=!s.entered;
+  if(s.entered) s.collapsed=true;
+  save();render();
+}
+function updateValidation(i,k){
+  const el=$('v-'+k+i);
+  const input=$('in-'+k+i);
+  if(!el||!input)return;
+  if(k==='actualLots'){
+    const lots=parseInt(db[mode][i][k],10);
+    const ok=Number.isInteger(lots)&&lots>0;
+    el.className='validation '+(db[mode][i][k]?(ok?'oktxt':'errtxt'):'');
+    el.textContent=db[mode][i][k]?(ok?'✓ 張數格式正確':'⚠ 張數請輸入正整數'):'';
+    input.classList.toggle('bad-input',db[mode][i][k]&&!ok);
+    return;
+  }
+  if(k==='feeDiscount'){
+    const d=parseFloat(db[mode][i][k]);
+    const has=String(db[mode][i][k]||'').trim()!=='';
+    const ok=Number.isFinite(d)&&d>0&&d<=10;
+    el.className='validation '+(has?(ok?'oktxt':'errtxt'):'');
+    el.textContent=has?(ok?'✓ '+f(d)+' 折':'⚠ 折數請輸入大於 0、最多 10'):'';
+    input.classList.toggle('bad-input',has&&!ok);
+    return;
+  }
+  const v=validationText(db[mode][i][k]);
+  el.className='validation '+(v.text?(v.ok?'oktxt':'errtxt'):'');
+  el.textContent=v.text;
+  input.classList.toggle('bad-input',!v.ok);
+}
+
+let listedMap=null,otcMap=null,loadingMaps=null;
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(Boolean),map={};
+  for(let i=1;i<lines.length;i++){
+    const row=[];let cur='',q=false;
+    for(let j=0;j<lines[i].length;j++){
+      const ch=lines[i][j];
+      if(ch==='"'){if(q&&lines[i][j+1]==='"'){cur+='"';j++}else q=!q}
+      else if(ch===','&&!q){row.push(cur);cur=''}
+      else cur+=ch;
+    }
+    row.push(cur);
+    const type=(row[0]||'').trim(),code=(row[1]||'').trim(),name=(row[2]||'').trim();
+    if(code&&name&&(type.includes('股票')||type.includes('ETF')||type.includes('ETN')))map[code]=name;
+  }
+  return map;
+}
+async function loadNameMaps(){
+  if(listedMap&&otcMap)return;
+  if(loadingMaps)return loadingMaps;
+  loadingMaps=(async()=>{
+    let lm={},om={};
+    try{
+      const r=await fetch('https://raw.githubusercontent.com/mlouielu/twstock/dev/twstock/codes/twse_equities.csv',{cache:'no-store'});
+      if(r.ok)lm=parseCSV(await r.text());
+    }catch(e){}
+    try{
+      const r=await fetch('https://raw.githubusercontent.com/mlouielu/twstock/dev/twstock/codes/tpex_equities.csv',{cache:'no-store'});
+      if(r.ok)om=parseCSV(await r.text());
+    }catch(e){}
+    listedMap=lm;otcMap=om;
+  })();
+  await loadingMaps;loadingMaps=null;
+}
+async function lookupName(i){
+  const s=db[mode][i];if(!s)return;
+  const code=String(s.code||'').trim(),el=$('lk'+i);
+  if(!code){
+    s.lookupMsg='輸入代號後自動查詢股票名稱';save();
+    if(el){el.className='lookup';el.textContent=s.lookupMsg}
+    return;
+  }
+  if(el){el.className='lookup';el.textContent='查詢中…'}
+  await loadNameMaps();
+  const name=(listedMap&&listedMap[code])||(otcMap&&otcMap[code])||'';
+  if(name){
+    s.name=name;s.lookupMsg='✓ 已自動帶入股票名稱';save();
+    render();
+  }else{
+    s.lookupMsg='查無名稱；可手動輸入股票名稱';save();
+    if(el){el.className='lookup errtxt';el.textContent=s.lookupMsg}
+  }
+}
+function preCalc(s){
+  const A=n(s.A),B=n(s.B),C=n(s.C),D=n(s.D);
+  if(![A,B,C,D].every(Number.isFinite))return null;
+  if(![A,B,C,D].every(isLegalPrice))return {invalid:true};
+  const plus=B*1.07,minus=A*.93;
+  let entry,stop;
+  if(mode==='short'){entry=mv(C,2,-1);stop=mv(D,2,1)}
+  else{entry=mv(D,2,1);stop=mv(C,2,-1)}
+  const range=entry<=plus&&entry>=minus;
+  const risk=Math.abs(stop-entry)*1000;
+  const limit=entry*.025*1000;
+  return {A,B,C,D,plus,minus,entry,stop,range,risk,limit,riskOK:risk<=limit};
+}
+
+function netProfitCalc(s,act){
+  if(!act)return null;
+  const lots=parseInt(s.actualLots,10);
+  const exit=n(s.plannedExit);
+  const discount=parseFloat(s.feeDiscount);
+  if(!(Number.isInteger(lots)&&lots>0&&Number.isFinite(exit)&&isLegalPrice(exit)&&Number.isFinite(discount)&&discount>0&&discount<=10))return null;
+
+  const shares=1000*lots;
+  const entryAmt=act.entry*shares;
+  const exitAmt=exit*shares;
+  const gross=(mode==='short'?(act.entry-exit):(exit-act.entry))*shares;
+
+  const commissionRate=0.001425*(discount/10);
+  // 每一邊手續費先以整數元計，貼近目前券商帳務顯示方式
+  const entryFee=Math.floor(entryAmt*commissionRate);
+  const exitFee=Math.floor(exitAmt*commissionRate);
+  const commission=entryFee+exitFee;
+
+  const sellAmt=mode==='short'?entryAmt:exitAmt;
+  const tax=Math.floor(sellAmt*0.0015);
+  const totalCost=commission+tax;
+  const net=gross-totalCost;
+
+  return {lots,exit,shares,entryAmt,exitAmt,gross,entryFee,exitFee,commission,tax,totalCost,net};
+}
+
+
+function ensureUid(s){
+  if(!s.uid) s.uid='stk_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
+  return s.uid;
+}
+function liveKey(m,i){
+  const s=db[m]&&db[m][i];
+  return s?ensureUid(s):(m+'-'+i);
+}
+function netProfitAtPrice(s,act,price){
+  if(!act||act.invalid||!Number.isFinite(price))return null;
+  const copy={...s,plannedExit:String(price)};
+  return netProfitCalc(copy,act);
+}
+function parseLivePrice(v){
+  const x=parseFloat(v);
+  return Number.isFinite(x)&&x>0?x:NaN;
+}
+
+
+function normalizeQuoteDate(v){
+  const s=String(v||'').trim();
+  if(/^\d{8}$/.test(s)) return `${s.slice(0,4)}-${s.slice(4,6)}-${s.slice(6,8)}`;
+  if(/^\d{4}[\/\-]\d{2}[\/\-]\d{2}$/.test(s)) return s.replaceAll('/','-');
+  return s;
+}
+
+function taipeiDateString(ts=new Date()){
+  try{
+    return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(ts);
+  }catch(e){
+    return ts.toISOString().slice(0,10);
+  }
+}
+function taipeiTimeParts(ts=new Date()){
+  try{
+    const parts=new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',hour12:false,hour:'2-digit',minute:'2-digit'}).formatToParts(ts);
+    const h=parseInt(parts.find(x=>x.type==='hour')?.value||'0',10);
+    const m=parseInt(parts.find(x=>x.type==='minute')?.value||'0',10);
+    return {h,m};
+  }catch(e){return {h:0,m:0}}
+}
+function unixToTaipei(ts){
+  const d=new Date(ts*1000);
+  return {
+    date:taipeiDateString(d),
+    time:new Intl.DateTimeFormat('zh-TW',{timeZone:'Asia/Taipei',hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(d)
+  };
+}
+async function fetchYahooFallback(code){
+  const symbols=[`${code}.TW`,`${code}.TWO`];
+  let lastErr=null;
+  for(const symbol of symbols){
+    try{
+      const target=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=5m&range=5d`;
+      const proxy=`https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+      const resp=await fetch(proxy,{cache:'no-store'});
+      if(!resp.ok)throw new Error('備援行情服務回應失敗');
+      const data=JSON.parse(await resp.text());
+      const result=data?.chart?.result?.[0];
+      if(!result)throw new Error('查無備援行情');
+      const timestamps=result.timestamp||[];
+      const closes=result.indicators?.quote?.[0]?.close||[];
+      let idx=-1;
+      for(let j=closes.length-1;j>=0;j--){
+        if(Number.isFinite(closes[j])){idx=j;break;}
+      }
+      if(idx<0)throw new Error('備援行情無有效收盤價');
+      const dt=unixToTaipei(timestamps[idx]);
+      return {
+        price:Number(closes[idx]),
+        time:dt.time,
+        date:dt.date,
+        market:symbol.endsWith('.TWO')?'otc':'tse',
+        name:'',
+        fallback:true,
+        symbol
+      };
+    }catch(e){lastErr=e}
+  }
+  throw lastErr||new Error('備援行情讀取失敗');
+}
+
+async function fetchTwseQuote(code){
+  code=String(code||'').trim();
+  if(!code)throw new Error('缺少股票代號');
+
+  try{
+    const exCh=`tse_${code}.tw|otc_${code}.tw`;
+    const target=`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${encodeURIComponent(exCh)}&json=1&delay=0&_=${Date.now()}`;
+    const proxy=`https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
+    const resp=await fetch(proxy,{cache:'no-store'});
+    if(!resp.ok)throw new Error('即時行情服務回應失敗');
+    const raw=await resp.text();
+    const data=JSON.parse(raw);
+    const row=(data.msgArray||[]).find(x=>String(x.c||'').trim()===code && (x.ex==='tse'||x.ex==='otc'));
+    if(row){
+      const price=parseLivePrice(row.z);
+      if(Number.isFinite(price)){
+        return {
+          price,
+          time:row.t||'',
+          date:row.d||'',
+          market:row.ex||'',
+          name:row.n||'',
+          fallback:false
+        };
+      }
+    }
+    throw new Error('即時行情目前無最新成交價');
+  }catch(err){
+    const fb=await fetchYahooFallback(code);
+    return {...fb,misError:err?.message||''};
+  }
+}
+async function refreshLiveQuote(i,manual=false){
+  const requestMode=mode;
+  const s=db[requestMode][i];
+  if(!s||!s.entered)return;
+  const uid=ensureUid(s);
+  const key=uid;
+  const status=requestMode===mode?$('live-status'+i):null;
+  const btn=requestMode===mode?$('live-btn'+i):null;
+  if(status)status.textContent=manual?'手動更新中…':'自動更新中…';
+  if(btn)btn.disabled=true;
+  try{
+    const q=await fetchTwseQuote(s.code);
+    const prev=liveQuotes[key]?.price;
+    liveQuotes[key]={...q,prevPrice:prev,error:'',fetchedAt:new Date().toLocaleTimeString('zh-TW',{hour12:false})};
+  }catch(err){
+    const old=liveQuotes[key]||{};
+    liveQuotes[key]={...old,error:err?.message||'行情更新失敗',fetchedAt:new Date().toLocaleTimeString('zh-TW',{hour12:false})};
+  }finally{
+    if(requestMode===mode){
+      const current=db[mode][i];
+      if(current&&ensureUid(current)===uid){
+        if(btn)btn.disabled=false;
+        renderLive(i);
+      }
+    }
+  }
+}
+function renderLive(i){
+  const s=db[mode][i];
+  if(!s)return;
+  const key=ensureUid(s);
+  const q=liveQuotes[key]||{};
+  const priceEl=$('live-price'+i);
+  const priceLabel=$('live-label'+i);
+  const plEl=$('live-pl'+i);
+  const status=$('live-status'+i);
+  const source=$('live-source'+i);
+  const smartAlert=$('smart-alert'+i);
+
+  if(!s.entered){
+    if(priceEl)priceEl.textContent='—';
+    if(plEl)plEl.textContent='—';
+    if(status)status.textContent='標記已進場後開始更新即時股價';
+    if(smartAlert){smartAlert.className='smart-trigger-alert';smartAlert.textContent='';}
+    return;
+  }
+
+  if(Number.isFinite(q.price)){
+    if(priceLabel){
+      const today=taipeiDateString();
+      const qt=normalizeQuoteDate(q.date);
+      const tp=taipeiTimeParts();
+      const afterClose=(tp.h>13)||(tp.h===13&&tp.m>=30);
+      if(q.fallback){
+        priceLabel.textContent=(qt===today?'今日收盤價':'最近交易日收盤價');
+      }else{
+        priceLabel.textContent=(qt===today&&afterClose?'今日收盤價':'即時股價（當前現價）');
+      }
+    }
+    if(priceEl){
+      priceEl.textContent=f(q.price);
+      priceEl.className='live-price';
+      if(Number.isFinite(q.prevPrice)&&q.price!==q.prevPrice) priceEl.classList.add(q.price>q.prevPrice?'flash-up':'flash-down');
+    }
+    const act=actualCalc(s);
+    const np=netProfitAtPrice(s,act,q.price);
+    if(np&&plEl){
+      plEl.textContent=(np.net>0?'+':'')+'$'+f(np.net);
+      plEl.className='live-pl '+(np.net>0?'live-profit':np.net<0?'live-loss':'live-flat');
+    }else if(plEl){
+      plEl.textContent='—';
+      plEl.className='live-pl live-flat';
+    }
+    if(status){
+      const today=taipeiDateString();
+      const qDate=normalizeQuoteDate(q.date);
+      const tp=taipeiTimeParts();
+      const afterClose=(tp.h>13)||(tp.h===13&&tp.m>=30);
+      let stateClass='live', stateText='行情正常';
+      if(q.error){stateClass='stale';stateText='使用上一筆行情';}
+      else if(q.fallback || qDate!==today || afterClose){stateClass='close';stateText=qDate===today?'今日收盤價':'最近交易日收盤價';}
+      const base=`行情時間 ${qDate||''} ${q.time||''}｜本頁取得 ${q.fetchedAt||''}`;
+      status.innerHTML=`${base} <span class="quote-state ${stateClass}">● ${stateText}</span>`+
+        (q.error?`<br><span class="live-error">⚠ 本次更新失敗，目前顯示上一筆有效行情</span>`:'');
+    }
+    if(source){
+      source.textContent=q.fallback
+        ? '即時來源無法取得時，已自動改用備援市場資料；收盤後／休市時顯示最近可取得的收盤價格。'
+        : '資料來源：臺灣證交所 MIS（透過公開 CORS proxy 讀取）。';
+    }
+    if(smartAlert){
+      const act=actualCalc(s);
+      if(act && !act.invalid && Number.isFinite(act.trigger) && Number.isFinite(act.be)){
+        const hit=mode==='short' ? q.price<=act.trigger : q.price>=act.trigger;
+        if(hit){
+          smartAlert.className='smart-trigger-alert show';
+          smartAlert.innerHTML=`🔔 <span class="big">已達智慧單啟動條件</span><br>第二道停損請設 <strong>${f(act.be)}</strong>`;
+        }else{
+          smartAlert.className='smart-trigger-alert';
+          smartAlert.textContent='';
+        }
+      }else{
+        smartAlert.className='smart-trigger-alert';
+        smartAlert.textContent='';
+      }
+    }
+  }else{
+    if(priceEl)priceEl.textContent='—';
+    if(plEl){plEl.textContent='—';plEl.className='live-pl live-flat'}
+    if(status)status.innerHTML=q.error?`<span class="live-error">⚠ ${q.error}</span>`:'等待行情更新；若目前已收盤，系統會自動嘗試取得收盤價格…';
+    if(source)source.textContent='若自動行情暫時無法使用，仍可用「預計出場價格（目標試算）」計算淨損益。';
+  }
+}
+function startLiveTimer(){
+  if(liveTimer)clearInterval(liveTimer);
+  liveTimer=setInterval(()=>{
+    db[mode].forEach((s,i)=>{
+      if(s.entered&&s.code)refreshLiveQuote(i,false);
+    });
+  },5000);
+}
+
+function actualCalc(s){
+  const ae=n(s.actualEntry);
+  if(!Number.isFinite(ae))return null;
+  if(!isLegalPrice(ae))return {invalid:true};
+  const stop=mode==='short'?mv(ae,2,1):mv(ae,2,-1);
+  const theory=mode==='short'?ae*.997:ae*1.003;
+  const be=validPriceAtOrBeyond(ae,theory,mode==='short'?-1:1);
+  const trigger=mv(be,3,mode==='short'?-1:1);
+  return {entry:ae,stop,be,trigger,risk:Math.abs(stop-ae)*1000};
+}
+function summaryText(s){
+  const pre=preCalc(s),act=actualCalc(s);
+  const name=(s.code?s.code+' ':'')+(s.name||'未命名股票');
+  if(s.entered&&act&&!act.invalid){
+    const lots=parseInt(s.actualLots,10);
+    const np=netProfitCalc(s,act);
+    let plText='';
+    if(np){
+      const plClass=np.net>0?'sum-profit':(np.net<0?'sum-loss':'sum-flat');
+      const plIcon=np.net>0?'🔴 ':np.net<0?'🟢 ':'⚪ ';
+      plText=`<br><span class="${plClass}">${plIcon}淨損益 ${np.net>0?'+':''}$${f(np.net)}</span>`;
+    }
+    return `<span class="sum-entered">🔵 已進場｜${name}｜成交 ${f(act.entry)}｜${Number.isInteger(lots)&&lots>0?lots+'張｜':''}停損 ${f(act.stop)}｜智慧單損益平衡 ${f(act.be)}${plText}</span>`;
+  }
+  if(pre&&pre.invalid){return `${mode==='short'?'🔴':'🟢'} ${name}｜價格格式有誤，請先修正`;}
+  if(pre){
+    return `${mode==='short'?'🔴':'🟢'} ${name}｜${mode==='short'?'做空':'做多'}｜進場 ${f(pre.entry)}｜停損 ${f(pre.stop)}｜±7% <span class="${pre.range?'sum-ok':'sum-bad'}">${pre.range?'✓':'⚠️'}</span>｜2.5% <span class="${pre.riskOK?'sum-ok':'sum-warn'}">${pre.riskOK?'✓':'⚠️'}</span>`;
+  }
+  return `${mode==='short'?'🔴':'🟢'} ${name}｜等待輸入進場前資料`;
+}
+function render(){
+  save();
+  const a=db[mode],list=$('list');
+  if(!a.length){
+    list.innerHTML='<div class="empty">目前沒有'+(mode==='short'?'做空':'做多')+'觀察股票<br><br>按「＋ 新增觀察股票」開始</div>';
+    return;
+  }
+  list.innerHTML=a.map((s,i)=>`
+  <div class="stock ${s.entered?'entered':''}">
+    <div class="stock-summary" onclick="toggleCard(${i})">
+      <span class="sum-main">${summaryText(s)}</span>
+      <span class="sum-toggle">${s.collapsed?'展開 ▼':'收合 ▲'}</span>
+    </div>
+
+    <div class="stock-body ${s.collapsed?'collapsed':''}">
+      <div class="head">
+        <b>${s.entered?'🔵 已進場':'觀察中'}｜${s.code||''} ${s.name||'未命名股票'}</b>
+        <div class="head-actions">
+          <button class="mini ${s.entered?'entered':'enter'}" onclick="event.stopPropagation();toggleEntered(${i})">${s.entered?'取消已進場':'✓ 標記已進場'}</button>
+          <button class="mini" onclick="dup(${i})">複製</button>
+          <button class="mini" onclick="del(${i})">刪除</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label>股票名稱</label>
+          <input value="${s.name}" oninput="setv(${i},'name',this.value)">
+        </div>
+        <div class="field manual">
+          <label>股票代號 <span class="badge">手動輸入</span></label>
+          <input value="${s.code}" inputmode="numeric" placeholder="例如：2330" oninput="setv(${i},'code',this.value)" onblur="lookupName(${i})">
+          <div class="lookup" id="lk${i}">${s.lookupMsg||'輸入代號後自動查詢股票名稱'}</div>
+        </div>
+      </div>
+
+      <div class="section-title">③ 進場前風控試算</div>
+      <div class="note" style="margin-bottom:8px">M／W 高低點只用於進場前預估進場、停損與 2.5% 風控。±7% 為判斷基準，不代表實際可掛單價格。</div>
+
+      <div class="grid">
+        ${priceField(i,'A','前日低 A',s.A,'manual')}
+        ${priceField(i,'B','前日高 B',s.B,'manual')}
+        ${priceField(i,'C',(mode==='short'?'M':'W')+' 型態低點 C',s.C,'manual')}
+        ${priceField(i,'D',(mode==='short'?'M':'W')+' 型態高點 D',s.D,'manual')}
+      </div>
+
+      <div class="calc" id="c${i}"></div>
+
+      <div class="actual">
+        <div class="section-title actual-title">⑦ 實際成交後管理</div>
+        <div class="actual-note">
+          📌 <b>損益平衡點：含約 0.3% 交易成本</b>　用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異。<br>
+          真正成交後：第一道停損依「實際進場價 ±2T」計算；損益平衡點以約 0.3% 交易成本計算理論價，再往獲利方向取合法檔位。當價格獲利超過損益平衡點 3T 後，再設定第二道停損，並將第二道停損價設為損益平衡點。做空為損益平衡點 −3T；做多為損益平衡點 ＋3T。
+        </div>
+
+        <div class="grid">
+          ${priceField(i,'actualEntry','實際進場點',s.actualEntry,'actual-input')}
+          <div class="field actual-input">
+            <label>實際進場張數 <span class="badge">手動輸入</span></label>
+            <input id="in-actualLots${i}" type="number" min="1" step="1" value="${s.actualLots||''}" placeholder="例如：2" oninput="setv(${i},'actualLots',this.value)">
+            <div class="validation" id="v-actualLots${i}"></div>
+          </div>
+          <div class="field actual-input">
+            <label>預計出場價格（目標試算） <span class="badge">手動輸入</span></label>
+            <input id="in-plannedExit${i}" type="number" step=".01" value="${s.plannedExit||''}" oninput="setv(${i},'plannedExit',this.value)">
+            <div id="v-plannedExit${i}" class="validation"></div>
+            <div class="quick-row">
+              <button class="quick-btn" type="button" onclick="setPlannedExit(${i},'stop')">帶入停損</button>
+              <button class="quick-btn" type="button" onclick="setPlannedExit(${i},'be')">帶入損益平衡</button>
+              
+            </div>
+          </div>
+          <div class="field actual-input">
+            <label>手續費計算折數 <span class="badge">手動輸入</span></label>
+            <input id="in-feeDiscount${i}" type="number" min="0" max="10" step=".1" value="${s.feeDiscount||''}" placeholder="月退制對照即時損益請輸入 10" oninput="setv(${i},'feeDiscount',this.value)">
+            <div class="validation" id="v-feeDiscount${i}"></div>
+            <div class="note" style="margin-top:4px">💡 月退制若要對照券商即時損益，請輸入 <b>10 折</b>；若想估算月退後最終成本，再輸入實際優惠折數。</div>
+          </div>
+        </div>
+        <div class="live-panel">
+          <div class="live-head">
+            <div class="live-title">📡 即時股價與目前預估淨損益</div>
+            <button id="live-btn${i}" class="live-refresh" type="button" onclick="refreshLiveQuote(${i},true)">立即更新</button>
+          </div>
+          <div class="live-grid">
+            <div class="live-price-box">
+              <small id="live-label${i}">即時股價（當前現價）</small>
+              <div id="live-price${i}" class="live-price">—</div>
+            </div>
+            <div class="live-pl-box">
+              <small>目前預估淨損益</small>
+              <div id="live-pl${i}" class="live-pl live-flat">—</div>
+            </div>
+          </div>
+          <div id="live-status${i}" class="live-meta">${s.entered?'等待行情更新…':'標記已進場後開始更新即時股價'}</div>
+          <div id="live-source${i}" class="live-meta">已進場股票每 5 秒嘗試自動更新一次。</div>
+          <div class="live-meta">目前預估淨損益＝假設以當前現價出場，並依張數、手續費折數與當沖證交稅估算。</div>
+          <div class="live-meta">※ 即時股價為市場最新成交資訊，實際成交價格可能因行情變動而不同。</div>
+          <div id="smart-alert${i}" class="smart-trigger-alert"></div>
+        </div>
+
+        <div class="results" style="margin-top:8px">
+          <div class="result"><small>第一道停損｜實際停損點（依實際進場 ±2T）</small><strong id="as${i}">—</strong></div>
+          <div class="result"><small>第二道停損｜損益平衡點（含約 0.3% 交易成本）</small><strong id="ab${i}">—</strong></div>
+          <div class="result"><small>${mode==='short'?'智慧單啟動價（損益平衡點 −3T）':'智慧單啟動價（損益平衡點 ＋3T）'}</small><strong id="at${i}">—</strong><div class="smart-action" id="atnote${i}">—</div></div>
+          <div class="result"><small>實際停損金額 / 張</small><strong id="ar${i}">—</strong></div>
+          <div class="result"><small>買賣手續費合計</small><strong id="afee${i}">—</strong></div>
+          <div class="result"><small>當沖證交稅 0.15%</small><strong id="atax${i}">—</strong></div>
+          <div class="result"><small>實際進場張數</small><strong id="alots${i}">${s.actualLots||'—'}</strong></div>
+        </div>
+        <div id="plhero${i}" class="pl-hero even">
+          <div class="pl-label">預估淨損益｜已扣手續費＋當沖證交稅</div>
+          <div id="apl${i}" class="pl-amount">—</div>
+          <div id="plstatus${i}" class="pl-caption">輸入實際進場價、張數與預計出場價後自動計算</div>
+        </div>
+      </div>
+    </div>
+  </div>`).join('');
+
+  let uidChanged=false;
+  a.forEach(s=>{if(!s.uid){ensureUid(s);uidChanged=true;}});
+  if(uidChanged) save();
+  a.forEach((s,i)=>{
+    ['A','B','C','D','actualEntry','plannedExit','actualLots','feeDiscount'].forEach(k=>updateValidation(i,k));
+    calc(i);
+    renderLive(i);
+    const key=liveKey(mode,i);
+    if(s.entered&&s.code&&!Number.isFinite(liveQuotes[key]?.price)) refreshLiveQuote(i,false);
+  });
+}
+function priceField(i,k,label,value,cls){
+  return `<div class="field ${cls}">
+    <label>${label} <span class="badge">手動輸入</span></label>
+    <input id="in-${k}${i}" type="number" step=".01" value="${value||''}" oninput="setv(${i},'${k}',this.value)">
+    <div id="v-${k}${i}" class="validation"></div>
+  </div>`;
+}
+function calc(i){
+  const s=db[mode][i],e=$('c'+i);
+  const pre=preCalc(s);
+
+  if(!pre){
+    if(e)e.innerHTML='<div class="status info">輸入 A、B、C、D 後自動計算進場前風控。</div>';
+  }else if(pre.invalid){
+    if(e)e.innerHTML='<div class="status bad">⚠ A、B、C、D 中有非合法台股檔位，請修正後再計算。</div>';
+  }else{
+    if(e)e.innerHTML=`
+      <div class="results">
+        <div class="result"><small>前日高 +7%</small><strong>${f(pre.plus)}</strong></div>
+        <div class="result"><small>前日低 -7%</small><strong>${f(pre.minus)}</strong></div>
+      </div>
+      <div class="status ${pre.range?'ok':'bad'}">${pre.range?'✓ 預估進場點位於前日 ±7% 範圍內':'✕ 預估進場點超出前日 ±7% 範圍'}</div>
+
+      <div class="results" style="margin-top:8px">
+        <div class="result"><small>${mode==='short'?'預估進場點 C − 2T':'預估進場點 D + 2T'}</small><strong>${f(pre.entry)}</strong></div>
+        <div class="result"><small>${mode==='short'?'預估停損點 D + 2T':'預估停損點 C − 2T'}</small><strong>${f(pre.stop)}</strong></div>
+        <div class="result"><small>預估停損金額 / 張</small><strong>$${f(pre.risk)}</strong></div>
+        <div class="result"><small>2.5% 最大虧損上限 / 張</small><strong>$${f(pre.limit)}</strong></div>
+      </div>
+
+      <div class="status ${pre.riskOK?'ok':'warn'}">${pre.riskOK?'✓ 預估停損在 2.5% 風控範圍內':'⚠ 預估停損超過 2.5% 風控｜可考慮放棄此圖形，等待下一個新圖形'}</div>
+
+      <div class="checks">
+        <label><input type="checkbox" ${s.c1?'checked':''} onchange="db[mode][${i}].c1=this.checked;save();calc(${i});render()"> ${mode==='short'?'跌破 M 低點（且在委賣第一檔）':'站穩＋突破 W 高點（且在委買第一檔）'}</label>
+        <label><input type="checkbox" ${s.c2?'checked':''} onchange="db[mode][${i}].c2=this.checked;save();calc(${i});render()"> ${mode==='short'?'大單 -45 度下垂':'大單 +45 度上揚'}</label>
+      </div>
+      <div class="status ${(s.c1&&s.c2)?'ok':'warn'}">${s.c1&&s.c2?'✓ 進場確認完成':'尚有進場確認條件未勾選'}</div>`;
+  }
+
+  const act=actualCalc(s);
+  const as=$('as'+i),ab=$('ab'+i),at=$('at'+i),atnote=$('atnote'+i),ar=$('ar'+i),apl=$('apl'+i),pls=$('plstatus'+i),plh=$('plhero'+i),alots=$('alots'+i),afee=$('afee'+i),atax=$('atax'+i);
+  if(act&&act.invalid){
+    if(as)as.textContent='—'; if(ab)ab.textContent='—'; if(at)at.textContent='—'; if(atnote)atnote.textContent='請先修正實際進場價';
+    if(ar)ar.textContent='—'; if(afee)afee.textContent='—'; if(atax)atax.textContent='—'; if(apl)apl.textContent='—';
+    if(plh)plh.className='pl-hero even'; if(pls)pls.textContent='實際進場價不是合法台股檔位，請修正後再計算';
+  }else if(act){
+    if(as)as.textContent=f(act.stop);
+    if(ab)ab.textContent=f(act.be);
+    if(at)at.textContent=f(act.trigger);
+    if(atnote)atnote.textContent='到價後 → 設定第二道停損為 '+f(act.be);
+    if(ar)ar.textContent='$'+f(act.risk);
+
+    const lots=parseInt(s.actualLots,10);
+    const np=netProfitCalc(s,act);
+    if(np){
+      if(afee) afee.textContent='$'+f(np.commission);
+      if(atax) atax.textContent='$'+f(np.tax);
+      if(apl) apl.textContent=(np.net>0?'+':'')+'$'+f(np.net);
+      if(alots) alots.textContent=np.lots+' 張';
+      if(plh) plh.className='pl-hero '+(np.net>0?'win':(np.net<0?'lose':'even'));
+      if(pls) pls.textContent=np.net>0?'▲ 預計淨獲利｜已扣手續費與當沖證交稅':np.net<0?'▼ 預計淨虧損｜已扣手續費與當沖證交稅':'— 預計淨損益持平';
+    }else{
+      if(afee) afee.textContent='—';
+      if(atax) atax.textContent='—';
+      if(apl) apl.textContent='—';
+      if(alots) alots.textContent=Number.isInteger(lots)&&lots>0?lots+' 張':'—';
+      if(plh) plh.className='pl-hero even';
+      if(pls) pls.textContent='輸入實際進場價、張數、預計出場價與手續費折數後，自動計算淨損益';
+    }
+  }else{
+    if(as)as.textContent='—';
+    if(ab)ab.textContent='—';
+    if(at)at.textContent='—';
+    if(ar)ar.textContent='—';
+    if(afee) afee.textContent='—';
+    if(atax) atax.textContent='—';
+    if(apl) apl.textContent='—';
+    if(alots) alots.textContent=s.actualLots?s.actualLots+' 張':'—';
+    if(plh) plh.className='pl-hero even';
+    if(pls) pls.textContent='輸入實際進場價、張數、預計出場價與手續費折數後，自動計算淨損益';
+  }
+}
+function toggleInfo(){
+  const body=$('infoBody'),arrow=$('infoArrow');
+  if(!body||!arrow)return;
+  const open=body.classList.toggle('open');
+  arrow.textContent=open?'收合 ▲':'展開 ▼';
+}
+
+save();
+render();
+startLiveTimer();
+</script>
+</body>
+</html>
