@@ -15,18 +15,36 @@
 <div class="card"><h2>目前觀察標的</h2><input id="symbol" class="symbol" placeholder="例如：富喬"></div>
 <div class="card"><h2>① 前日高低點（±7% 範圍）</h2><div class="section-note">✍ 手動輸入</div><div class="grid"><div class="field manual-field"><label><span>前日低 A</span><span class="manual-badge">手動輸入</span></label><input id="prevLow" type="number" step="0.1" inputmode="decimal" value="94.9"></div><div class="field manual-field"><label><span>前日高 B</span><span class="manual-badge">手動輸入</span></label><input id="prevHigh" type="number" step="0.1" inputmode="decimal" value="105.5"></div></div><div class="result-grid" style="margin-top:12px"><div class="result"><small>前日高 +7%</small><strong id="plus7">—</strong></div><div class="result"><small>前日低 -7%</small><strong id="minus7">—</strong></div><div id="rangeStatus" class="status wide">—</div></div></div>
 <div class="card"><h2 id="patternTitle">② M 型態高低點</h2><div class="section-note">✍ 手動輸入</div><div class="grid"><div class="field manual-field"><label><span id="patternLowLabel">M 型態低點 C</span><span class="manual-badge">手動輸入</span></label><input id="patternLow" type="number" step="0.1" inputmode="decimal" value="97.7"></div><div class="field manual-field"><label><span id="patternHighLabel">M 型態高點 D</span><span class="manual-badge">手動輸入</span></label><input id="patternHigh" type="number" step="0.1" inputmode="decimal" value="98.8"></div></div></div>
-<div class="card"><h2>③ 自動計算</h2><div class="result-grid"><div class="result"><small id="entryLabel">進場點 C − 2T</small><strong id="entry">—</strong></div><div class="result"><small id="stopLabel">停損點 D + 2T</small><strong id="stop">—</strong></div><div class="result"><small>停損差價金額 / 張</small><strong id="risk">—</strong></div><div class="result"><small>進場點 2.5% 金額</small><strong id="maxRisk">—</strong></div><div class="result wide"><small>進場條件公式</small><strong id="compareFormula">—</strong></div><div id="riskStatus" class="status wide">—</div></div></div>
+<div class="card"><h2>③ 自動計算</h2><div class="hint" style="margin:-4px 0 12px">T = 1 檔；系統會依各價格級距自動套用升降單位，跨級距時逐檔計算。</div><div class="result-grid"><div class="result"><small id="entryLabel">進場點 C − 2T</small><strong id="entry">—</strong></div><div class="result"><small id="stopLabel">停損點 D + 2T</small><strong id="stop">—</strong></div><div class="result"><small>停損差價金額 / 張</small><strong id="risk">—</strong></div><div class="result"><small>進場點 2.5% 金額</small><strong id="maxRisk">—</strong></div><div class="result wide"><small>進場條件公式</small><strong id="compareFormula">—</strong></div><div id="riskStatus" class="status wide">—</div></div></div>
 <div class="card"><h2>④ / ⑤ 進場確認</h2><label class="checkrow"><input type="checkbox" id="confirm1" checked><span id="confirm1Text">站穩＋突破 M 高點（且在委賣第一檔）</span></label><label class="checkrow"><input type="checkbox" id="confirm2" checked><span id="confirm2Text">大單 -45 度下垂</span></label><div id="tradeStatus" class="status ok" style="margin-top:10px">條件確認完成</div></div>
 <div class="card actions"><h2>⑥ 智慧單 MIT 設置</h2><div class="result-grid"><div class="result"><small>H. 停損點</small><strong id="mitStop">—</strong></div><div class="result"><small>I. 保本點</small><strong id="breakEven">—</strong></div><div class="result wide"><small id="mitTriggerLabel">獲利超過 I − 3T 才設定</small><strong id="mitTrigger">—</strong></div></div><p id="actionHint" class="hint"></p></div>
-<div class="footer">計算依照你提供的 Excel 規則製作。T = 0.1，2T = 0.2；進場條件：進場點 2.5% 金額 < 停損差價金額。此工具僅做試算，不構成投資建議。</div>
+<div class="footer">計算依照你提供的 Excel 規則製作。T = 1 檔，會依台股股價級距自動套用升降單位；進場點與停損點皆以 2T 計算。此工具僅做試算，不構成投資建議。</div>
 </div>
 <script>
 let mode='short'; const $=id=>document.getElementById(id); const ids=['prevLow','prevHigh','patternLow','patternHigh'];
 const n=id=>parseFloat($(id).value); const fmt=x=>Number.isFinite(x)?x.toLocaleString('zh-TW',{maximumFractionDigits:2}):'—';
+function tickSize(price){
+  if(price<10) return 0.01;
+  if(price<50) return 0.05;
+  if(price<100) return 0.1;
+  if(price<500) return 0.5;
+  if(price<1000) return 1;
+  return 5;
+}
+function moveTicks(price,count,direction){
+  let p=Number(price);
+  for(let i=0;i<count;i++){
+    const probe=direction>0?p:Math.max(0,p-1e-9);
+    const t=tickSize(probe);
+    p=direction>0?p+t:p-t;
+    p=Math.round(p*100)/100;
+  }
+  return p;
+}
 function calc(){const A=n('prevLow'),B=n('prevHigh'),C=n('patternLow'),D=n('patternHigh'); $('plus7').textContent=fmt(B*1.07); $('minus7').textContent=fmt(A*.93); if(![A,B,C,D].every(Number.isFinite))return;
  let entry,stop,risk,maxRisk,be,trigger,rangeOK;
- if(mode==='short'){entry=C-.2; stop=D+.2; be=(entry*1000-entry*3)/1000; trigger=be-.3; rangeOK=entry<=B*1.07 && entry>=A*.93;}
- else{stop=C-.2; entry=D+.2; be=(entry*1000+entry*3)/1000; trigger=be+.4; rangeOK=entry<=B*1.07 && entry>=A*.93;}
+ if(mode==='short'){entry=moveTicks(C,2,-1); stop=moveTicks(D,2,1); be=(entry*1000-entry*3)/1000; trigger=be-.3; rangeOK=entry<=B*1.07 && entry>=A*.93;}
+ else{stop=moveTicks(C,2,-1); entry=moveTicks(D,2,1); be=(entry*1000+entry*3)/1000; trigger=be+.4; rangeOK=entry<=B*1.07 && entry>=A*.93;}
  risk=Math.abs(stop-entry)*1000; maxRisk=entry*.025*1000;
  $('entry').textContent=fmt(entry);$('stop').textContent=fmt(stop);$('risk').textContent='$'+fmt(risk);$('maxRisk').textContent='$'+fmt(maxRisk);$('mitStop').textContent=fmt(stop);$('breakEven').textContent=fmt(be);$('mitTrigger').textContent=fmt(trigger);
  const pass=maxRisk<risk;
@@ -36,6 +54,6 @@ function calc(){const A=n('prevLow'),B=n('prevHigh'),C=n('patternLow'),D=n('patt
  $('rangeStatus').className='status wide '+(rangeOK?'ok':'bad'); $('rangeStatus').textContent=rangeOK?'✓ 進場點位於前日 ±7% 範圍內':'✕ 進場點超出前日 ±7% 範圍，不做'; updateTrade(rangeOK,pass);
 }
 function updateTrade(){const checks=$('confirm1').checked&&$('confirm2').checked; $('tradeStatus').className='status '+(checks?'ok':'warn'); $('tradeStatus').textContent=checks?'✓ 進場確認完成':'尚有進場確認條件未勾選';}
-function setMode(m){mode=m;$('longTab').classList.toggle('active',m==='long');$('shortTab').classList.toggle('active',m==='short'); if(m==='short'){$('patternTitle').textContent='② M 型態高低點';$('patternLowLabel').textContent='M 型態低點 C';$('patternHighLabel').textContent='M 型態高點 D';$('entryLabel').textContent='進場點 C − 2T';$('stopLabel').textContent='停損點 D + 2T';$('confirm1Text').textContent='跌破 M 低點（且在委賣第一檔）';$('confirm2Text').textContent='大單 -45 度下垂';$('mitTriggerLabel').textContent='獲利超過 I − 3T 才設定';$('actionHint').textContent='操作提示：先按賣才是放空；停損 / 保本 / 鎖利觸發後按買。';}else{$('patternTitle').textContent='② W 型態高低點';$('patternLowLabel').textContent='W 型態低點 C';$('patternHighLabel').textContent='W 型態高點 D';$('entryLabel').textContent='進場點 D + 2T';$('stopLabel').textContent='停損點 C − 2T';$('confirm1Text').textContent='站穩＋突破 W 高點（且在委買第一檔）';$('confirm2Text').textContent='大單 45 度上揚';$('mitTriggerLabel').textContent='獲利超過 I + 3T 才設定';$('actionHint').textContent='操作提示：進場按買；停損 / 保本 / 鎖利觸發後按賣。';} calc();}
+function setMode(m){mode=m;$('longTab').classList.toggle('active',m==='long');$('shortTab').classList.toggle('active',m==='short'); if(m==='short'){$('patternTitle').textContent='② M 型態高低點';$('patternLowLabel').textContent='M 型態低點 C';$('patternHighLabel').textContent='M 型態高點 D';$('entryLabel').textContent='進場點 C − 2T（依股價自動換檔）';$('stopLabel').textContent='停損點 D + 2T（依股價自動換檔）';$('confirm1Text').textContent='跌破 M 低點（且在委賣第一檔）';$('confirm2Text').textContent='大單 -45 度下垂';$('mitTriggerLabel').textContent='獲利超過 I − 3T 才設定';$('actionHint').textContent='操作提示：先按賣才是放空；停損 / 保本 / 鎖利觸發後按買。';}else{$('patternTitle').textContent='② W 型態高低點';$('patternLowLabel').textContent='W 型態低點 C';$('patternHighLabel').textContent='W 型態高點 D';$('entryLabel').textContent='進場點 D + 2T（依股價自動換檔）';$('stopLabel').textContent='停損點 C − 2T（依股價自動換檔）';$('confirm1Text').textContent='站穩＋突破 W 高點（且在委買第一檔）';$('confirm2Text').textContent='大單 45 度上揚';$('mitTriggerLabel').textContent='獲利超過 I + 3T 才設定';$('actionHint').textContent='操作提示：進場按買；停損 / 保本 / 鎖利觸發後按賣。';} calc();}
 ids.forEach(id=>$(id).addEventListener('input',calc));$('confirm1').addEventListener('change',()=>updateTrade());$('confirm2').addEventListener('change',()=>updateTrade());$('longTab').onclick=()=>setMode('long');$('shortTab').onclick=()=>setMode('short');setMode('short');
 </script></body></html>
