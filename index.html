@@ -413,11 +413,37 @@ async function lookupName(i){
     if(el){el.className='lookup errtxt';el.textContent=s.lookupMsg}
   }
 }
+function floorLegalPrice(target){
+  target=Number(target);
+  if(!Number.isFinite(target)||target<=0)return NaN;
+  let p=Math.floor(target*100)/100;
+  let guard=0;
+  while(p>0&&guard++<10000){
+    if(isLegalPrice(p)&&p<=target+1e-9)return Math.round(p*100)/100;
+    p=Math.round((p-.01)*100)/100;
+  }
+  return NaN;
+}
+function ceilLegalPrice(target){
+  target=Number(target);
+  if(!Number.isFinite(target)||target<=0)return NaN;
+  let p=Math.ceil(target*100)/100;
+  let guard=0;
+  while(guard++<10000){
+    if(isLegalPrice(p)&&p>=target-1e-9)return Math.round(p*100)/100;
+    p=Math.round((p+.01)*100)/100;
+  }
+  return NaN;
+}
 function preCalc(s){
   const A=n(s.A),B=n(s.B),C=n(s.C),D=n(s.D);
   if(![A,B,C,D].every(Number.isFinite))return null;
   if(![A,B,C,D].every(isLegalPrice))return {invalid:true};
-  const plus=B*1.07,minus=A*.93;
+  const plusRaw=B*1.07,minusRaw=A*.93;
+  // ±7% 邊界必須落在原始百分比範圍內：
+  // 上限往下取合法檔位；下限往上取合法檔位，避免放寬 ±7% 風控。
+  const plus=floorLegalPrice(plusRaw);
+  const minus=ceilLegalPrice(minusRaw);
   let entry,stop;
   if(mode==='short'){entry=mv(C,2,-1);stop=mv(D,2,1)}
   else{entry=mv(D,2,1);stop=mv(C,2,-1)}
@@ -871,7 +897,7 @@ function calc(i){
   }else{
     if(e)e.innerHTML=`
       <div class="results">
-        <div class="result"><small>前日高 +7%</small><strong>${f(pre.plus)}</strong></div>
+        <div class="result"><small>前日高 +7% 可用價格上限</small><strong>${f(pre.plus)}</strong></div>
         <div class="result"><small>前日低 -7%</small><strong>${f(pre.minus)}</strong></div>
       </div>
       <div class="status ${pre.range?'ok':'bad'}">${pre.range?'✓ 預估進場點位於前日 ±7% 範圍內':'✕ 預估進場點超出前日 ±7% 範圍'}</div>
