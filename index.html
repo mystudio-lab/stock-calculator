@@ -74,6 +74,20 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 .quote-state.close{border-color:#c7b8dc;background:#f5f1fa;color:#625a73}
 .smart-trigger-alert{display:none;margin-top:10px;padding:11px 12px;border-radius:12px;border:2px solid #e58b8b;background:#fff0f0;color:#a61b1b;font-weight:900;line-height:1.55}
 .smart-trigger-alert.show{display:block}
+.capture-stamp{margin-top:10px;padding-top:8px;border-top:1px dashed #cbd5e1;font-size:11px;color:#64748b;text-align:right}
+.capture-loading{opacity:.7;pointer-events:none}
+.capture-modal{position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.72);display:none;align-items:center;justify-content:center;padding:18px}
+.capture-modal.show{display:flex}
+.capture-box{width:min(920px,96vw);max-height:92vh;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden}
+.capture-box-head{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid #e2e8f0;font-weight:900}
+.capture-preview{padding:14px;background:#f1f5f9;overflow:auto;text-align:center}
+.capture-preview img{max-width:100%;height:auto;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.capture-actions{display:flex;gap:8px;justify-content:flex-end;padding:12px 16px;border-top:1px solid #e2e8f0}
+.capture-actions button,.capture-actions a{border:1px solid #cbd5e1;background:#fff;border-radius:9px;padding:8px 12px;font-weight:850;font-size:13px;text-decoration:none;color:#334155;cursor:pointer}
+.capture-actions a{background:#0f172a;color:#fff;border-color:#0f172a}
+.capture-progress{padding:28px;text-align:center;font-weight:850;color:#475569}
+
+
 .smart-trigger-alert .big{font-size:15px}
 .live-price.flash-up{animation:flashUp .7s ease}.live-price.flash-down{animation:flashDown .7s ease}@keyframes flashUp{0%{background:#ffdede;color:#c62828}100%{background:transparent}}@keyframes flashDown{0%{background:#e1f4e7;color:#08733c}100%{background:transparent}}
 @media(max-width:620px){.live-grid{grid-template-columns:1fr 1fr}}
@@ -90,6 +104,13 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 .pl-hero.win{background:#fff0f0;border-color:#f1aaaa;color:#c62828}
 .pl-hero.lose{background:#ecf9f1;border-color:#9bd5b4;color:#08733c}
 .pl-hero.even{background:#f5f7fa;border-color:#d7dde5;color:#64748b}
+.trade-message{margin-top:10px;padding:11px 13px;border-radius:12px;font-size:13px;font-weight:850;line-height:1.6;text-align:center}
+.trade-message.win{background:#f3f7ff;border:1px solid #9dbcf2;color:#2457a6}
+.trade-message.lose{background:#eff8f2;border:1px solid #abd6ba;color:#176b3a}
+.trade-message.flat{background:#f6f7f9;border:1px solid #d9dde4;color:#5f6773}
+.record-wrap{display:flex;justify-content:center;margin-top:10px}
+.record-btn{border:0;background:#172033;color:#fff;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer}
+
 .info-panel{margin-top:12px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden}
 .info-toggle{width:100%;border:0;background:#f8fafc;padding:11px 14px;text-align:left;font-weight:800;color:#334155;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .info-body{display:none;padding:12px 14px;font-size:12px;color:#64748b;line-height:1.7}
@@ -141,6 +162,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -172,7 +194,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
         <div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
-        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
+        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生完整交易紀錄預覽；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
     </div>
   </div>
@@ -711,7 +733,7 @@ function render(){
     return;
   }
   list.innerHTML=a.map((s,i)=>`
-  <div class="stock ${s.entered?'entered':''}">
+  <div class="stock ${s.entered?'entered':''}" id="stock-card-${i}">
     <div class="stock-summary" onclick="toggleCard(${i})">
       <span class="sum-main">${summaryText(s)}</span>
       <span class="sum-toggle">${s.collapsed?'展開 ▼':'收合 ▲'}</span>
@@ -720,7 +742,7 @@ function render(){
     <div class="stock-body ${s.collapsed?'collapsed':''}">
       <div class="head">
         <b>${s.entered?'🔵 已進場':'觀察中'}｜${s.code||''} ${s.name||'未命名股票'}</b>
-        <div class="head-actions">
+        <div class="head-actions" data-html2canvas-ignore="true">
           <button class="mini ${s.entered?'entered':'enter'}" onclick="event.stopPropagation();toggleEntered(${i})">${s.entered?'取消已進場':'✓ 標記已進場'}</button>
           <button class="mini" onclick="dup(${i})">複製</button>
           <button class="mini" onclick="del(${i})">刪除</button>
@@ -785,7 +807,7 @@ function render(){
         <div class="live-panel">
           <div class="live-head">
             <div class="live-title">📡 即時股價與目前預估淨損益</div>
-            <button id="live-btn${i}" class="live-refresh" type="button" onclick="refreshLiveQuote(${i},true)">立即更新</button>
+            <button id="live-btn${i}" class="live-refresh" data-html2canvas-ignore="true" type="button" onclick="refreshLiveQuote(${i},true)">立即更新</button>
           </div>
           <div class="live-grid">
             <div class="live-price-box">
@@ -817,6 +839,10 @@ function render(){
           <div class="pl-label">預估淨損益｜已扣手續費＋當沖證交稅</div>
           <div id="apl${i}" class="pl-amount">—</div>
           <div id="plstatus${i}" class="pl-caption">輸入實際進場價、張數與預計出場價後自動計算</div>
+        </div>
+        <div id="trade-msg${i}" class="trade-message flat">完成這筆交易後，可以把紀錄存下來做盤後回顧。</div>
+        <div class="record-wrap">
+          <button class="record-btn" type="button" onclick="captureCard(${i})">📸 儲存此筆交易紀錄</button>
         </div>
       </div>
     </div>
@@ -873,11 +899,12 @@ function calc(i){
   }
 
   const act=actualCalc(s);
-  const as=$('as'+i),ab=$('ab'+i),at=$('at'+i),atnote=$('atnote'+i),ar=$('ar'+i),apl=$('apl'+i),pls=$('plstatus'+i),plh=$('plhero'+i),alots=$('alots'+i),afee=$('afee'+i),atax=$('atax'+i);
+  const as=$('as'+i),ab=$('ab'+i),at=$('at'+i),atnote=$('atnote'+i),ar=$('ar'+i),apl=$('apl'+i),pls=$('plstatus'+i),plh=$('plhero'+i),tmsg=$('trade-msg'+i),alots=$('alots'+i),afee=$('afee'+i),atax=$('atax'+i);
   if(act&&act.invalid){
     if(as)as.textContent='—'; if(ab)ab.textContent='—'; if(at)at.textContent='—'; if(atnote)atnote.textContent='請先修正實際進場價';
     if(ar)ar.textContent='—'; if(afee)afee.textContent='—'; if(atax)atax.textContent='—'; if(apl)apl.textContent='—';
     if(plh)plh.className='pl-hero even'; if(pls)pls.textContent='實際進場價不是合法台股檔位，請修正後再計算';
+    if(tmsg){tmsg.className='trade-message flat';tmsg.textContent='請先完成有效的交易資料，再儲存交易紀錄。';}
   }else if(act){
     if(as)as.textContent=f(act.stop);
     if(ab)ab.textContent=f(act.be);
@@ -894,6 +921,18 @@ function calc(i){
       if(alots) alots.textContent=np.lots+' 張';
       if(plh) plh.className='pl-hero '+(np.net>0?'win':(np.net<0?'lose':'even'));
       if(pls) pls.textContent=np.net>0?'▲ 預計淨獲利｜已扣手續費與當沖證交稅':np.net<0?'▼ 預計淨虧損｜已扣手續費與當沖證交稅':'— 預計淨損益持平';
+      if(tmsg){
+        if(np.net>0){
+          tmsg.className='trade-message win';
+          tmsg.textContent='🎉 恭喜獲利！穩穩執行策略，漂亮完成這筆交易。';
+        }else if(np.net<0){
+          tmsg.className='trade-message lose';
+          tmsg.textContent='🌱 這筆沒有如預期也沒關係，守好停損、照策略執行，就是好的交易紀律。';
+        }else{
+          tmsg.className='trade-message flat';
+          tmsg.textContent='✨ 守住交易紀律，等待下一個更好的機會。';
+        }
+      }
     }else{
       if(afee) afee.textContent='—';
       if(atax) atax.textContent='—';
@@ -901,6 +940,7 @@ function calc(i){
       if(alots) alots.textContent=Number.isInteger(lots)&&lots>0?lots+' 張':'—';
       if(plh) plh.className='pl-hero even';
       if(pls) pls.textContent='輸入實際進場價、張數、預計出場價與手續費折數後，自動計算淨損益';
+      if(tmsg){tmsg.className='trade-message flat';tmsg.textContent='完成這筆交易後，可以把紀錄存下來做盤後回顧。';}
     }
   }else{
     if(as)as.textContent='—';
@@ -913,6 +953,149 @@ function calc(i){
     if(alots) alots.textContent=s.actualLots?s.actualLots+' 張':'—';
     if(plh) plh.className='pl-hero even';
     if(pls) pls.textContent='輸入實際進場價、張數、預計出場價與手續費折數後，自動計算淨損益';
+    if(tmsg){tmsg.className='trade-message flat';tmsg.textContent='完成這筆交易後，可以把紀錄存下來做盤後回顧。';}
+  }
+}
+
+function safeFileName(s){
+  return String(s||'').replace(/[\\/:*?"<>|]/g,'_').replace(/\s+/g,'_');
+}
+let captureObjectUrl=null;
+let captureDataUrl='';
+let captureFileName='交易紀錄.png';
+let captureBlob=null;
+
+function dataUrlToBlob(dataUrl){
+  const parts=dataUrl.split(',');
+  const mime=(parts[0].match(/data:(.*?);base64/)||[])[1]||'image/png';
+  const bin=atob(parts[1]);
+  const arr=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+  return new Blob([arr],{type:mime});
+}
+
+function setCaptureSaveStatus(msg,isError=false){
+  const el=$('capture-save-status');
+  if(!el)return;
+  el.textContent=msg||'';
+  el.style.color=isError?'#b42318':'#64748b';
+}
+
+async function copyCaptureImage(){
+  if(!captureBlob){
+    alert('尚未產生可複製的截圖。');
+    return;
+  }
+  try{
+    if(!navigator.clipboard || typeof ClipboardItem==='undefined'){
+      throw new Error('此瀏覽器不支援圖片剪貼簿');
+    }
+    await navigator.clipboard.write([
+      new ClipboardItem({'image/png':captureBlob})
+    ]);
+    setCaptureSaveStatus('✓ 圖片已複製，可直接貼到 LINE、記事本或其他支援圖片貼上的地方。');
+  }catch(err){
+    console.error(err);
+    setCaptureSaveStatus('此瀏覽器無法直接複製圖片，請在預覽圖上按右鍵／長按後儲存。',true);
+  }
+}
+
+function closeCapturePreview(){
+  const modal=$('capture-modal');
+  if(modal)modal.classList.remove('show');
+}
+function closeCapturePreview(){
+  const modal=$('capture-modal');
+  if(modal)modal.classList.remove('show');
+}
+async function captureCard(i){
+  const s=db[mode][i];
+  const card=$('stock-card-'+i);
+  if(!s||!card)return;
+
+  const modal=$('capture-modal');
+  const preview=$('capture-preview');
+  const copyBtn=$('capture-copy');
+
+  if(modal)modal.classList.add('show');
+  captureDataUrl='';captureFileName='交易紀錄.png';
+  if(preview)preview.innerHTML='<div class="capture-progress">正在產生交易紀錄…</div>';
+  if(copyBtn)copyBtn.style.display='none';
+  captureBlob=null;
+  setCaptureSaveStatus('');
+
+  if(typeof html2canvas==='undefined'){
+    if(preview)preview.innerHTML='<div class="capture-progress">⚠ 截圖元件載入失敗。請確認網路連線後重新整理頁面再試。</div>';
+    return;
+  }
+
+  const body=card.querySelector('.stock-body');
+  const wasCollapsed=body?.classList.contains('collapsed');
+  const summaryToggle=card.querySelector('.sum-toggle');
+  let stamp=null;
+
+  try{
+    card.classList.add('capture-loading');
+    if(wasCollapsed){
+      body.classList.remove('collapsed');
+      if(summaryToggle)summaryToggle.textContent='收合 ▲';
+      await new Promise(r=>setTimeout(r,150));
+    }
+
+    stamp=document.createElement('div');
+    stamp.className='capture-stamp';
+    const now=new Date();
+    stamp.textContent='交易紀錄截圖時間：'+now.toLocaleString('zh-TW',{hour12:false});
+    card.appendChild(stamp);
+    await new Promise(r=>setTimeout(r,100));
+
+    const canvas=await html2canvas(card,{
+      backgroundColor:'#ffffff',
+      scale:2,
+      useCORS:true,
+      allowTaint:false,
+      logging:false,
+      scrollX:0,
+      scrollY:-window.scrollY
+    });
+
+    const dataUrl=canvas.toDataURL('image/png');
+
+    const dt=now.toISOString().slice(0,10);
+    const code=s.code||'未填代號';
+    const name=s.name||'未命名股票';
+    const direction=mode==='short'?'做空':'做多';
+    const filename=safeFileName(`${dt}_${code}_${name}_${direction}_交易紀錄.png`);
+
+    if(preview){
+      preview.innerHTML='';
+      const img=document.createElement('img');
+      img.alt='此筆交易紀錄預覽';
+      img.title='電腦可按右鍵另存圖片；手機可長按儲存';
+      img.src=dataUrl;
+      img.onload=()=>{};
+      img.onerror=()=>{
+        preview.innerHTML='<div class="capture-progress">⚠ 預覽圖片載入失敗，但仍可嘗試下載 PNG。</div>';
+      };
+      preview.appendChild(img);
+    }
+
+    captureDataUrl=dataUrl;
+    captureFileName=filename;
+    captureBlob=dataUrlToBlob(dataUrl);
+
+    if(copyBtn)copyBtn.style.display='inline-block';
+    setCaptureSaveStatus('預覽完成。請直接在圖片上按右鍵／長按儲存；也可按「複製圖片」。');
+  }catch(err){
+    console.error(err);
+    if(preview)preview.innerHTML='<div class="capture-progress">⚠ 截圖產生失敗，請重新整理頁面後再試一次。</div>';
+  }finally{
+    card.classList.remove('capture-loading');
+    if(stamp&&stamp.isConnected)stamp.remove();
+    if(wasCollapsed&&body){
+      body.classList.add('collapsed');
+      if(summaryToggle)summaryToggle.textContent='展開 ▼';
+    }
   }
 }
 function toggleInfo(){
@@ -926,5 +1109,26 @@ save();
 render();
 startLiveTimer();
 </script>
+
+<div id="capture-modal" class="capture-modal" onclick="if(event.target===this)closeCapturePreview()">
+  <div class="capture-box">
+    <div class="capture-box-head">
+      <span>📸 此筆交易紀錄預覽</span>
+      <button type="button" onclick="closeCapturePreview()" style="border:0;background:transparent;font-size:20px;cursor:pointer">×</button>
+    </div>
+    <div id="capture-preview" class="capture-preview">
+      <div class="capture-progress">正在產生交易紀錄…</div>
+    </div>
+    <div id="capture-save-status" style="padding:0 16px 8px;font-size:12px;color:#64748b;text-align:right"></div>
+    <div style="padding:0 16px 10px;font-size:12px;color:#475569;line-height:1.6">
+      💡 電腦：在預覽圖片上按右鍵 →「圖片另存新檔」；手機：長按圖片 → 儲存圖片。
+    </div>
+    <div class="capture-actions">
+      <button type="button" onclick="closeCapturePreview()">關閉</button>
+      <button id="capture-copy" type="button" onclick="copyCaptureImage()" style="display:none">複製圖片</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
