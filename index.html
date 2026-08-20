@@ -294,11 +294,6 @@ function del(i){
     db[mode].splice(i,1);save();render();
   }
 }
-function dup(i){
-  const c=normalizeRecord({...db[mode][i],entered:false,c1:false,c2:false,collapsed:false,actualEntry:''});
-  if(c.name)c.name+=' 複製';
-  db[mode].splice(i+1,0,c);save();render();
-}
 function clearToday(){
   if(confirm('確定清除今天所有做多與做空觀察股票？此動作無法復原。')){
     db={short:[],long:[]};save();render();
@@ -744,7 +739,6 @@ function render(){
         <b>${s.entered?'🔵 已進場':'觀察中'}｜${s.code||''} ${s.name||'未命名股票'}</b>
         <div class="head-actions" data-html2canvas-ignore="true">
           <button class="mini ${s.entered?'entered':'enter'}" onclick="event.stopPropagation();toggleEntered(${i})">${s.entered?'取消已進場':'✓ 標記已進場'}</button>
-          <button class="mini" onclick="dup(${i})">複製</button>
           <button class="mini" onclick="del(${i})">刪除</button>
         </div>
       </div>
@@ -761,7 +755,7 @@ function render(){
         </div>
       </div>
 
-      <div class="section-title">③ 進場前風控試算</div>
+      <div class="section-title">① 進場前風控試算</div>
       <div class="note" style="margin-bottom:8px">M／W 高低點只用於進場前預估進場、停損與 2.5% 風控。±7% 為判斷基準，不代表實際可掛單價格。</div>
 
       <div class="grid">
@@ -774,7 +768,7 @@ function render(){
       <div class="calc" id="c${i}"></div>
 
       <div class="actual">
-        <div class="section-title actual-title">⑦ 實際成交後管理</div>
+        <div class="section-title actual-title">③ 實際成交後管理</div>
         <div class="actual-note">
           📌 <b>損益平衡點：含約 0.3% 交易成本</b>　用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異。<br>
           真正成交後：第一道停損依「實際進場價 ±2T」計算；損益平衡點以約 0.3% 交易成本計算理論價，再往獲利方向取合法檔位。當價格獲利超過損益平衡點 3T 後，再設定第二道停損，並將第二道停損價設為損益平衡點。做空為損益平衡點 −3T；做多為損益平衡點 ＋3T。
@@ -882,6 +876,7 @@ function calc(i){
       </div>
       <div class="status ${pre.range?'ok':'bad'}">${pre.range?'✓ 預估進場點位於前日 ±7% 範圍內':'✕ 預估進場點超出前日 ±7% 範圍'}</div>
 
+      <div class="section-title" style="margin-top:12px">② 進場點位預估</div>
       <div class="results" style="margin-top:8px">
         <div class="result"><small>${mode==='short'?'預估進場點 C − 2T':'預估進場點 D + 2T'}</small><strong>${f(pre.entry)}</strong></div>
         <div class="result"><small>${mode==='short'?'預估停損點 D + 2T':'預估停損點 C − 2T'}</small><strong>${f(pre.stop)}</strong></div>
@@ -895,7 +890,7 @@ function calc(i){
         <label><input type="checkbox" ${s.c1?'checked':''} onchange="db[mode][${i}].c1=this.checked;save();calc(${i});render()"> ${mode==='short'?'跌破 M 低點（且在委賣第一檔）':'站穩＋突破 W 高點（且在委買第一檔）'}</label>
         <label><input type="checkbox" ${s.c2?'checked':''} onchange="db[mode][${i}].c2=this.checked;save();calc(${i});render()"> ${mode==='short'?'大單 -45 度下垂':'大單 +45 度上揚'}</label>
       </div>
-      <div class="status ${(s.c1&&s.c2)?'ok':'warn'}">${s.c1&&s.c2?'✓ 進場確認完成':'尚有進場確認條件未勾選'}</div>`;
+      <div class="status ${(s.c1&&s.c2)?'ok':'bad'}">${s.c1&&s.c2?'✓ 進場確認完成':'尚有進場確認條件未勾選'}</div>`;
   }
 
   const act=actualCalc(s);
