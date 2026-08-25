@@ -169,8 +169,8 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
   <div class="title">📈 當沖多股票觀察試算</div>
 
   <div class="tabs">
-    <button id="ts" class="tab active" onclick="sw('short')">🔴 做空觀察 <span id="cs">0</span></button>
-    <button id="tl" class="tab" onclick="sw('long')">🟢 做多觀察 <span id="cl">0</span></button>
+    <button id="ts" class="tab active" onclick="sw('short')">🟢 做空觀察 <span id="cs">0</span></button>
+    <button id="tl" class="tab" onclick="sw('long')">🔴 做多觀察 <span id="cl">0</span></button>
   </div>
 
   <div class="bar">
@@ -192,7 +192,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>T 檔價</b>&lt;10＝0.01｜10～&lt;50＝0.05｜50～&lt;100＝0.1｜100～&lt;500＝0.5｜500～&lt;1000＝1｜≥1000＝5</div>
         <div class="info-item"><b>進場前預判</b>M／W 型態只用來預估進場、停損與 2.5% 風控；進場 ±2T、停損 ±2T，跨級距逐檔計算。</div>
         <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
-        <div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
+        <div class="info-item"><b>2.5% 最大停損警戒價</b>依實際進場價計算最大風控界線；做空不超過進場價 +2.5%，做多不超過進場價 −2.5%，並轉為不突破 2.5% 的合法台股檔位。此價格不是建議停損點，第一道停損仍以實際進場 ±2T 為主。</div><div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
         <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
@@ -721,10 +721,14 @@ function actualCalc(s){
   if(!Number.isFinite(ae))return null;
   if(!isLegalPrice(ae))return {invalid:true};
   const stop=mode==='short'?mv(ae,2,1):mv(ae,2,-1);
+  // 2.5% 最大停損警戒價：不是建議停損點，而是最大風控界線。
+  // 做空上界不可超過 +2.5%；做多下界不可超過 -2.5%。
+  const risk25Raw=mode==='short'?ae*1.025:ae*.975;
+  const risk25=mode==='short'?floorLegalPrice(risk25Raw):ceilLegalPrice(risk25Raw);
   const theory=mode==='short'?ae*.997:ae*1.003;
   const be=validPriceAtOrBeyond(ae,theory,mode==='short'?-1:1);
   const trigger=mv(be,3,mode==='short'?-1:1);
-  return {entry:ae,stop,be,trigger,risk:Math.abs(stop-ae)*1000};
+  return {entry:ae,stop,risk25,be,trigger,risk:Math.abs(stop-ae)*1000};
 }
 function summaryText(s){
   const pre=preCalc(s),act=actualCalc(s);
@@ -797,7 +801,7 @@ function render(){
         <div class="section-title actual-title">③ 實際成交後管理</div>
         <div class="actual-note">
           📌 <b>損益平衡點：含約 0.3% 交易成本</b>　用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異。<br>
-          真正成交後：第一道停損依「實際進場價 ±2T」計算；損益平衡點以約 0.3% 交易成本計算理論價，再往獲利方向取合法檔位。當價格獲利超過損益平衡點 3T 後，再設定第二道停損，並將第二道停損價設為損益平衡點。做空為損益平衡點 −3T；做多為損益平衡點 ＋3T。
+          真正成交後：第一道停損依「實際進場價 ±2T」計算；另顯示「2.5% 最大停損警戒價」作為最大風控界線（非建議停損點）。損益平衡點以約 0.3% 交易成本計算理論價，再往獲利方向取合法檔位。當價格獲利超過損益平衡點 3T 後，再設定第二道停損，並將第二道停損價設為損益平衡點。做空為損益平衡點 −3T；做多為損益平衡點 ＋3T。
         </div>
 
         <div class="grid">
@@ -848,6 +852,7 @@ function render(){
 
         <div class="results" style="margin-top:8px">
           <div class="result"><small>第一道停損｜實際停損點（依實際進場 ±2T）</small><strong id="as${i}">—</strong></div>
+          <div class="result"><small>⚠️ 2.5% 最大停損警戒價</small><strong id="risk25${i}">—</strong><div class="smart-action">非建議停損點｜僅為最大風控界線</div></div>
           <div class="result"><small>第二道停損｜損益平衡點（含約 0.3% 交易成本）</small><strong id="ab${i}">—</strong></div>
           <div class="result"><small>${mode==='short'?'智慧單啟動價（損益平衡點 −3T）':'智慧單啟動價（損益平衡點 ＋3T）'}</small><strong id="at${i}">—</strong><div class="smart-action" id="atnote${i}">—</div></div>
           <div class="result"><small>實際停損金額 / 張</small><strong id="ar${i}">—</strong></div>
@@ -920,14 +925,15 @@ function calc(i){
   }
 
   const act=actualCalc(s);
-  const as=$('as'+i),ab=$('ab'+i),at=$('at'+i),atnote=$('atnote'+i),ar=$('ar'+i),apl=$('apl'+i),pls=$('plstatus'+i),plh=$('plhero'+i),tmsg=$('trade-msg'+i),alots=$('alots'+i),afee=$('afee'+i),atax=$('atax'+i);
+  const as=$('as'+i),risk25=$('risk25'+i),ab=$('ab'+i),at=$('at'+i),atnote=$('atnote'+i),ar=$('ar'+i),apl=$('apl'+i),pls=$('plstatus'+i),plh=$('plhero'+i),tmsg=$('trade-msg'+i),alots=$('alots'+i),afee=$('afee'+i),atax=$('atax'+i);
   if(act&&act.invalid){
-    if(as)as.textContent='—'; if(ab)ab.textContent='—'; if(at)at.textContent='—'; if(atnote)atnote.textContent='請先修正實際進場價';
+    if(as)as.textContent='—';if(risk25)risk25.textContent='—'; if(ab)ab.textContent='—'; if(at)at.textContent='—'; if(atnote)atnote.textContent='請先修正實際進場價';
     if(ar)ar.textContent='—'; if(afee)afee.textContent='—'; if(atax)atax.textContent='—'; if(apl)apl.textContent='—';
     if(plh)plh.className='pl-hero even'; if(pls)pls.textContent='實際進場價不是合法台股檔位，請修正後再計算';
     if(tmsg){tmsg.className='trade-message flat';tmsg.textContent='請先完成有效的交易資料，再儲存交易紀錄。';}
   }else if(act){
     if(as)as.textContent=f(act.stop);
+    if(risk25)risk25.textContent=f(act.risk25);
     if(ab)ab.textContent=f(act.be);
     if(at)at.textContent=f(act.trigger);
     if(atnote)atnote.textContent='到價後 → 設定第二道停損為 '+f(act.be);
@@ -964,7 +970,7 @@ function calc(i){
       if(tmsg){tmsg.className='trade-message flat';tmsg.textContent='完成這筆交易後，可以把紀錄存下來做盤後回顧。';}
     }
   }else{
-    if(as)as.textContent='—';
+    if(as)as.textContent='—';if(risk25)risk25.textContent='—';
     if(ab)ab.textContent='—';
     if(at)at.textContent='—';
     if(ar)ar.textContent='—';
