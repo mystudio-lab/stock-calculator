@@ -751,7 +751,7 @@ function summaryText(s){
     const entryLabel=mode==='short'?'放空':'買進';
     const exitLabel=mode==='short'?'回補':'賣出';
     const hasLots=Number.isInteger(lots)&&lots>0;
-    const exit=n(s.actualExit);
+    const exit=n(s.plannedExit);
     const hasExit=Number.isFinite(exit)&&exit>0;
     let tradeLine=`${entryLabel} ${f(act.entry)}${hasLots?'｜'+lots+'張':''}`;
     let plText='';
@@ -765,7 +765,7 @@ function summaryText(s){
       plText=`<br><span class="${plClass}">淨損益 ${np.net>0?'+':''}$${f(np.net)}｜報酬率 ${roi>0?'+':''}${Number.isFinite(roi)?roi.toFixed(2):'—'}%</span>`;
     }
     const dateLabel=s.tradeDate||todayTradeDate();
-    return `<span class="sum-entered"><b>${dateLabel}</b>｜${dirIcon} 已進場｜${name}<br>${tradeLine}${plText}</span>`;
+    return `<span class="sum-entered"><b>${dateLabel}</b>｜${dirIcon} 已進場｜${name}｜${tradeLine}${plText}</span>`;
   }
   if(pre&&pre.invalid){return `<b>${s.tradeDate||todayTradeDate()}</b>｜${mode==='short'?'🟢':'🔴'} ${name}｜價格格式有誤，請先修正`;}
   if(pre){
