@@ -320,7 +320,11 @@ function renderHistory(){
     list.innerHTML='<div class="history-empty">尚無已完成的歷史成交紀錄</div>';
     return;
   }
-  list.innerHTML=tradeHistory.slice().sort((a,b)=>(b.savedAt||'').localeCompare(a.savedAt||'')).map(h=>{
+  list.innerHTML=tradeHistory.slice().sort((a,b)=>{
+    const dateCmp=(b.date||'').localeCompare(a.date||'');
+    if(dateCmp!==0)return dateCmp;
+    return (b.savedAt||'').localeCompare(a.savedAt||'');
+  }).map(h=>{
     const isShort=h.mode==='short';
     const cls=h.net>0?'profit':h.net<0?'loss':'flat';
     const entryLabel=isShort?'放空':'買進';
