@@ -229,7 +229,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
         <div class="info-item"><b>2.5% 最大停損警戒價</b>依實際進場價計算最大風控界線；做空不超過進場價 +2.5%，做多不超過進場價 −2.5%，並轉為不突破 2.5% 的合法台股檔位。此價格不是建議停損點，第一道停損仍以實際進場 ±2T 為主。</div><div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
-        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
+        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
     </div>
   </div>
@@ -438,6 +438,16 @@ function clearToday(){
   if(confirm('確定清除今天所有做多與做空觀察股票？此動作無法復原。')){
     db={short:[],long:[]};save();render();
   }
+}
+function setTradeDate(i,v){
+  const s=db[mode][i];
+  if(!s)return;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)){
+    s.tradeDate=v.replaceAll('-','/');
+  }else{
+    s.tradeDate=todayTradeDate();
+  }
+  save();render();
 }
 function setv(i,k,v){
   db[mode][i][k]=v;save();
@@ -918,7 +928,7 @@ function render(){
 
     <div class="stock-body ${s.collapsed?'collapsed':''}">
       <div class="head">
-        <b>${s.entered?'🔵 已進場':'觀察中'}｜${s.code||''} ${s.name||'未命名股票'}</b>
+        <b>${s.tradeDate||todayTradeDate()}｜${s.entered?'🔵 已進場':'觀察中'}｜${s.code||''} ${s.name||'未命名股票'}</b>
         <div class="head-actions" data-html2canvas-ignore="true">
           <button class="mini ${s.entered?'entered':'enter'}" onclick="event.stopPropagation();toggleEntered(${i})">${s.entered?'取消已進場':'✓ 標記已進場'}</button>
           <button class="mini" onclick="del(${i})">刪除</button>
@@ -957,6 +967,11 @@ function render(){
         </div>
 
         <div class="grid">
+          <div class="field actual-input">
+            <label>交易日期 <span class="badge">可修改</span></label>
+            <input id="in-tradeDate${i}" type="date" value="${(s.tradeDate||todayTradeDate()).replaceAll('/','-')}" onchange="setTradeDate(${i},this.value)">
+            <div class="validation">預設帶入建立當日；補登前幾天交易時可自行修改</div>
+          </div>
           ${priceField(i,'actualEntry','實際進場點',s.actualEntry,'actual-input')}
           <div class="field actual-input">
             <label>實際進場張數 <span class="badge">手動輸入</span></label>
@@ -1225,7 +1240,7 @@ async function captureCard(i){
     stamp=document.createElement('div');
     stamp.className='capture-stamp';
     const now=new Date();
-    stamp.textContent='交易紀錄截圖時間：'+now.toLocaleString('zh-TW',{hour12:false});
+    stamp.textContent='交易日期：'+(s.tradeDate||todayTradeDate())+'｜截圖時間：'+now.toLocaleString('zh-TW',{hour12:false});
     card.appendChild(stamp);
     await new Promise(r=>setTimeout(r,100));
 
@@ -1241,7 +1256,7 @@ async function captureCard(i){
 
     const dataUrl=canvas.toDataURL('image/png');
 
-    const dt=now.toISOString().slice(0,10);
+    const dt=(s.tradeDate||todayTradeDate()).replaceAll('/','-');
     const code=s.code||'未填代號';
     const name=s.name||'未命名股票';
     const direction=mode==='short'?'做空':'做多';
