@@ -118,6 +118,13 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 .history-stat{background:#f8fafc;border:1px solid #e8edf3;border-radius:10px;padding:9px;text-align:center}
 .history-stat small{display:block;color:#64748b;font-weight:700;margin-bottom:3px}
 .history-stat strong{font-size:16px;color:#172033}
+.rebate-box{display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e8edf3;border-radius:12px;padding:11px 12px;margin:10px 0 12px}
+.rebate-field label{display:block;font-size:11px;font-weight:800;color:#64748b;margin-bottom:4px}
+.rebate-field input{width:130px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-weight:800;color:#334155}
+.rebate-discount{font-size:13px;color:#475569;font-weight:800;padding-bottom:7px}
+.rebate-total{margin-left:auto;text-align:right}
+.rebate-total small{display:block;color:#64748b;font-weight:800}
+.rebate-total strong{display:block;font-size:22px;color:#172033;margin-top:2px}
 .history-row{padding:10px 4px;border-top:1px solid #eef2f7;font-size:13px;line-height:1.65}
 .history-row:first-child{border-top:0}
 .history-row .line1{font-weight:800;color:#334155}
@@ -215,6 +222,17 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
   <div id="historyView" class="history-page" style="display:none">
     <div class="history-page-title">📚 歷史成交紀錄</div>
     <div id="historyStats"></div>
+    <div class="rebate-box">
+      <div class="rebate-field">
+        <label>💰 月退手續費預估｜月份</label>
+        <input id="rebateMonth" type="month" onchange="renderRebate()">
+      </div>
+      <div class="rebate-field">
+        <label>優惠折數</label>
+        <input id="rebateDiscount" type="number" min="0.1" max="10" step="0.1" value="1.8" oninput="setRebateDiscount(this.value)">
+      </div>
+      <div class="rebate-total"><small>預估月退手續費</small><strong id="rebateAmount">$0</strong></div>
+    </div>
     <div id="historyList"></div>
   </div>
 
@@ -229,7 +247,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
         <div class="info-item"><b>2.5% 最大停損警戒價</b>依實際進場價計算最大風控界線；做空不超過進場價 +2.5%，做多不超過進場價 −2.5%，並轉為不突破 2.5% 的合法台股檔位。此價格不是建議停損點，第一道停損仍以實際進場 ±2T 為主。</div><div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
-        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
+        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>月退手續費預估</b>依所選月份歷史成交紀錄，自動彙總買賣雙邊牌告手續費，優惠折數可自行修改並會自動記住；預估月退＝10折手續費 ×（1－優惠折數÷10）。不納入證交稅。實際退費以券商入帳為準。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
     </div>
   </div>
@@ -238,6 +256,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 <script>
 const K='watchV18';
 const HK='tradeHistoryV1';
+const RK='rebateDiscountV1';
 let mode='short';
 const liveQuotes={};
 let liveTimer=null;
@@ -300,6 +319,40 @@ function swHistory(){
   renderHistory();
 if($('ch'))$('ch').textContent=tradeHistory.length;
 }
+function getRebateDiscount(){
+  const v=parseFloat(localStorage.getItem(RK));
+  return Number.isFinite(v)&&v>0&&v<=10?v:1.8;
+}
+function setRebateDiscount(v){
+  const d=parseFloat(v);
+  if(Number.isFinite(d)&&d>0&&d<=10){
+    localStorage.setItem(RK,String(d));
+    renderRebate();
+  }
+}
+function historyMonthDefault(){
+  const dates=tradeHistory.map(x=>x.date||'').filter(Boolean).sort().reverse();
+  return (dates[0]||todayTradeDate()).slice(0,7).replace('/','-');
+}
+function renderRebate(){
+  const inp=$('rebateMonth'),out=$('rebateAmount'),discountEl=$('rebateDiscount');
+  if(!inp||!out)return;
+  if(!inp.value)inp.value=historyMonthDefault();
+  const discount=getRebateDiscount();
+  if(discountEl && document.activeElement!==discountEl) discountEl.value=discount;
+  const ym=inp.value.replace('-','/');
+  let fullFee=0;
+  tradeHistory.forEach(h=>{
+    if(!(h.date||'').startsWith(ym))return;
+    const entry=Number(h.entry),exit=Number(h.exit),lots=Number(h.lots);
+    if(!(entry>0&&exit>0&&lots>0))return;
+    const entryFee=Math.round(entry*lots*1000*0.001425);
+    const exitFee=Math.round(exit*lots*1000*0.001425);
+    fullFee+=entryFee+exitFee;
+  });
+  const refund=Math.round(fullFee*(1-discount/10));
+  out.textContent='$'+f(refund);
+}
 function renderHistory(){
   const stats=$('historyStats'),list=$('historyList');
   if(!stats||!list)return;
@@ -316,6 +369,8 @@ function renderHistory(){
     <div class="history-stat"><small>虧損</small><strong>${losses}筆</strong></div>
     <div class="history-stat"><small>勝率</small><strong>${winRate.toFixed(1)}%</strong></div>
   </div>`;
+  renderRebate();
+  if($('ch'))$('ch').textContent=total;
   if(!total){
     list.innerHTML='<div class="history-empty">尚無已完成的歷史成交紀錄</div>';
     return;
