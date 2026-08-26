@@ -216,10 +216,21 @@ const $=id=>document.getElementById(id);
 const n=v=>{const x=parseFloat(v);return Number.isFinite(x)?x:NaN};
 const f=x=>Number.isFinite(x)?x.toLocaleString('zh-TW',{maximumFractionDigits:2}):'—';
 
+function todayTradeDate(){
+  try{
+    return new Intl.DateTimeFormat('en-CA',{
+      timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'
+    }).format(new Date()).replaceAll('-','/');
+  }catch(e){
+    const d=new Date();
+    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  }
+}
 function normalizeRecord(s){
   return {
     name:s.name||'',code:s.code||'',A:s.A||'',B:s.B||'',C:s.C||'',D:s.D||'',
     actualEntry:s.actualEntry||'',actualLots:s.actualLots||'',plannedExit:s.plannedExit||'',feeDiscount:s.feeDiscount||'',c1:!!s.c1,c2:!!s.c2,lookupMsg:s.lookupMsg||'',
+    tradeDate:s.tradeDate||todayTradeDate(),
     collapsed:!!s.collapsed,entered:!!s.entered
   };
 }
@@ -736,19 +747,31 @@ function summaryText(s){
   if(s.entered&&act&&!act.invalid){
     const lots=parseInt(s.actualLots,10);
     const np=netProfitCalc(s,act);
+    const dirIcon=mode==='short'?'🟢':'🔴';
+    const entryLabel=mode==='short'?'放空':'買進';
+    const exitLabel=mode==='short'?'回補':'賣出';
+    const hasLots=Number.isInteger(lots)&&lots>0;
+    const exit=n(s.actualExit);
+    const hasExit=Number.isFinite(exit)&&exit>0;
+    let tradeLine=`${entryLabel} ${f(act.entry)}${hasLots?'｜'+lots+'張':''}`;
     let plText='';
-    if(np){
-      const plClass=np.net>0?'sum-profit':(np.net<0?'sum-loss':'sum-flat');
-      const plIcon=np.net>0?'🔴 ':np.net<0?'🟢 ':'⚪ ';
-      plText=`<br><span class="${plClass}">${plIcon}淨損益 ${np.net>0?'+':''}$${f(np.net)}</span>`;
+    if(hasExit){
+      tradeLine+=`｜${exitLabel} ${f(exit)}`;
     }
-    return `<span class="sum-entered">🔵 已進場｜${name}｜成交 ${f(act.entry)}｜${Number.isInteger(lots)&&lots>0?lots+'張｜':''}停損 ${f(act.stop)}｜智慧單損益平衡 ${f(act.be)}${plText}</span>`;
+    if(np&&hasLots&&hasExit){
+      const plClass=np.net>0?'sum-profit':(np.net<0?'sum-loss':'sum-flat');
+      const entryAmount=act.entry*lots*1000;
+      const roi=entryAmount>0?np.net/entryAmount*100:NaN;
+      plText=`<br><span class="${plClass}">淨損益 ${np.net>0?'+':''}$${f(np.net)}｜報酬率 ${roi>0?'+':''}${Number.isFinite(roi)?roi.toFixed(2):'—'}%</span>`;
+    }
+    const dateLabel=s.tradeDate||todayTradeDate();
+    return `<span class="sum-entered"><b>${dateLabel}</b>｜${dirIcon} 已進場｜${name}<br>${tradeLine}${plText}</span>`;
   }
-  if(pre&&pre.invalid){return `${mode==='short'?'🔴':'🟢'} ${name}｜價格格式有誤，請先修正`;}
+  if(pre&&pre.invalid){return `<b>${s.tradeDate||todayTradeDate()}</b>｜${mode==='short'?'🟢':'🔴'} ${name}｜價格格式有誤，請先修正`;}
   if(pre){
-    return `${mode==='short'?'🔴':'🟢'} ${name}｜${mode==='short'?'做空':'做多'}｜進場 ${f(pre.entry)}｜停損 ${f(pre.stop)}｜±7% <span class="${pre.range?'sum-ok':'sum-bad'}">${pre.range?'✓':'⚠️'}</span>｜2.5% <span class="${pre.riskOK?'sum-ok':'sum-warn'}">${pre.riskOK?'✓':'⚠️'}</span>`;
+    return `<b>${s.tradeDate||todayTradeDate()}</b>｜${mode==='short'?'🟢':'🔴'} ${name}｜${mode==='short'?'做空':'做多'}｜進場 ${f(pre.entry)}｜停損 ${f(pre.stop)}｜±7% <span class="${pre.range?'sum-ok':'sum-bad'}">${pre.range?'✓':'⚠️'}</span>｜2.5% <span class="${pre.riskOK?'sum-ok':'sum-warn'}">${pre.riskOK?'✓':'⚠️'}</span>`;
   }
-  return `${mode==='short'?'🔴':'🟢'} ${name}｜等待輸入進場前資料`;
+  return `<b>${s.tradeDate||todayTradeDate()}</b>｜${mode==='short'?'🟢':'🔴'} ${name}｜等待輸入進場前資料`;
 }
 function render(){
   save();
