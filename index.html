@@ -110,6 +110,26 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 .trade-message.flat{background:#f6f7f9;border:1px solid #d9dde4;color:#5f6773}
 .record-wrap{display:flex;justify-content:center;margin-top:10px}
 .record-btn{border:0;background:#172033;color:#fff;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer}
+.history-panel{margin-top:14px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden}
+.history-toggle{width:100%;border:0;background:#f8fafc;padding:12px 14px;text-align:left;font-weight:900;color:#334155;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.history-body{display:none;padding:12px 14px}
+.history-body.open{display:block}
+.history-stats{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:8px;margin-bottom:10px}
+.history-stat{background:#f8fafc;border:1px solid #e8edf3;border-radius:10px;padding:9px;text-align:center}
+.history-stat small{display:block;color:#64748b;font-weight:700;margin-bottom:3px}
+.history-stat strong{font-size:16px;color:#172033}
+.history-row{padding:10px 4px;border-top:1px solid #eef2f7;font-size:13px;line-height:1.65}
+.history-row:first-child{border-top:0}
+.history-row .line1{font-weight:800;color:#334155}
+.history-row .line2{font-weight:900}
+.history-row .profit{color:#c62828}
+.history-row .loss{color:#08733c}
+.history-row .flat{color:#64748b}
+.history-empty{padding:18px;text-align:center;color:#94a3b8;font-size:13px}
+.history-delete{float:right;border:0;background:transparent;color:#94a3b8;cursor:pointer;font-size:12px}
+.archive-btn{border:0;background:#44546a;color:#fff;padding:10px 16px;border-radius:10px;font-weight:900;cursor:pointer}
+@media(max-width:620px){.history-stats{grid-template-columns:1fr 1fr}.history-stat:first-child{grid-column:1/-1}}
+
 
 .info-panel{margin-top:12px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden}
 .info-toggle{width:100%;border:0;background:#f8fafc;padding:11px 14px;text-align:left;font-weight:800;color:#334155;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
@@ -161,6 +181,14 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
   color:#08733c !important;
 }
 
+
+.tabs-three{grid-template-columns:repeat(3,1fr)}
+.history-page{margin-top:10px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:14px}
+.history-page-title{font-size:16px;font-weight:900;color:#172033;margin-bottom:10px}
+@media(max-width:620px){
+  .tabs-three{grid-template-columns:repeat(3,1fr)}
+  .tabs-three .tab{font-size:12px;padding:10px 4px}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
@@ -168,9 +196,10 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 <div class="wrap">
   <div class="title">📈 當沖多股票觀察試算</div>
 
-  <div class="tabs">
+  <div class="tabs tabs-three">
     <button id="ts" class="tab active" onclick="sw('short')">🟢 做空觀察 <span id="cs">0</span></button>
     <button id="tl" class="tab" onclick="sw('long')">🔴 做多觀察 <span id="cl">0</span></button>
+    <button id="th" class="tab" onclick="swHistory()">📚 歷史成交紀錄 <span id="ch">0</span></button>
   </div>
 
   <div class="bar">
@@ -183,6 +212,12 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 
   <div id="list"></div>
 
+  <div id="historyView" class="history-page" style="display:none">
+    <div class="history-page-title">📚 歷史成交紀錄</div>
+    <div id="historyStats"></div>
+    <div id="historyList"></div>
+  </div>
+
   <div class="info-panel">
     <button class="info-toggle" onclick="toggleInfo()">
       <span>ℹ️ 計算規則與風控說明</span><span id="infoArrow">展開 ▼</span>
@@ -194,7 +229,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
         <div class="info-item"><b>2.5% 最大停損警戒價</b>依實際進場價計算最大風控界線；做空不超過進場價 +2.5%，做多不超過進場價 −2.5%，並轉為不突破 2.5% 的合法台股檔位。此價格不是建議停損點，第一道停損仍以實際進場 ±2T 為主。</div><div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
-        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
+        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
     </div>
   </div>
@@ -202,14 +237,20 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 
 <script>
 const K='watchV18';
+const HK='tradeHistoryV1';
 let mode='short';
 const liveQuotes={};
 let liveTimer=null;
 let db={short:[],long:[]};
+let tradeHistory=[];
 
 try{
   const old=JSON.parse(localStorage.getItem(K) || localStorage.getItem('watchV8'));
   if(old&&Array.isArray(old.short)&&Array.isArray(old.long)) db=old;
+}catch(e){}
+try{
+  const h=JSON.parse(localStorage.getItem(HK)||'[]');
+  if(Array.isArray(h))tradeHistory=h;
 }catch(e){}
 
 const $=id=>document.getElementById(id);
@@ -241,6 +282,89 @@ function save(){
   localStorage.setItem(K,JSON.stringify(db));
   $('cs').textContent=db.short.length;
   $('cl').textContent=db.long.length;
+  if($('ch'))$('ch').textContent=tradeHistory.length;
+}
+function saveHistory(){
+  localStorage.setItem(HK,JSON.stringify(tradeHistory));
+  if($('ch'))$('ch').textContent=tradeHistory.length;
+}
+function swHistory(){
+  mode='history';
+  $('ts').classList.remove('active');
+  $('tl').classList.remove('active');
+  $('th').classList.add('active');
+  $('list').style.display='none';
+  const bar=document.querySelector('.bar');
+  if(bar)bar.style.display='none';
+  $('historyView').style.display='block';
+  renderHistory();
+if($('ch'))$('ch').textContent=tradeHistory.length;
+}
+function renderHistory(){
+  const stats=$('historyStats'),list=$('historyList');
+  if(!stats||!list)return;
+  const total=tradeHistory.length;
+  const wins=tradeHistory.filter(x=>x.net>0).length;
+  const losses=tradeHistory.filter(x=>x.net<0).length;
+  const net=tradeHistory.reduce((a,x)=>a+(Number(x.net)||0),0);
+  const winRate=total?wins/total*100:0;
+  const netClass=net>0?'profit':net<0?'loss':'flat';
+  stats.innerHTML=`<div class="history-stats">
+    <div class="history-stat"><small>累積淨損益</small><strong class="${netClass}">${net>0?'+':''}$${f(net)}</strong></div>
+    <div class="history-stat"><small>總筆數</small><strong>${total}筆</strong></div>
+    <div class="history-stat"><small>獲利</small><strong>${wins}筆</strong></div>
+    <div class="history-stat"><small>虧損</small><strong>${losses}筆</strong></div>
+    <div class="history-stat"><small>勝率</small><strong>${winRate.toFixed(1)}%</strong></div>
+  </div>`;
+  if(!total){
+    list.innerHTML='<div class="history-empty">尚無已完成的歷史成交紀錄</div>';
+    return;
+  }
+  list.innerHTML=tradeHistory.slice().sort((a,b)=>(b.savedAt||'').localeCompare(a.savedAt||'')).map(h=>{
+    const isShort=h.mode==='short';
+    const cls=h.net>0?'profit':h.net<0?'loss':'flat';
+    const entryLabel=isShort?'放空':'買進';
+    const exitLabel=isShort?'回補':'賣出';
+    const icon=isShort?'🟢':'🔴';
+    return `<div class="history-row">
+      <button class="history-delete" onclick="deleteHistory('${h.id}')">刪除</button>
+      <div class="line1">${h.date}｜${h.code?h.code+' ':''}${h.name||'未命名股票'}｜${icon} ${isShort?'做空':'做多'}｜${entryLabel} ${f(h.entry)}｜${h.lots}張｜${exitLabel} ${f(h.exit)}</div>
+      <div class="line2 ${cls}">淨損益 ${h.net>0?'+':''}$${f(h.net)}｜報酬率 ${h.roi>0?'+':''}${Number(h.roi).toFixed(2)}%</div>
+    </div>`;
+  }).join('');
+}
+function deleteHistory(id){
+  if(!confirm('確定刪除這筆歷史成交紀錄？'))return;
+  tradeHistory=tradeHistory.filter(x=>x.id!==id);
+  saveHistory();renderHistory();
+}
+function archiveTrade(i){
+  const s=db[mode][i];
+  if(!s)return;
+  const act=actualCalc(s);
+  const lots=parseInt(s.actualLots,10);
+  const exit=n(s.plannedExit);
+  if(!s.entered){alert('請先標記為已進場。');return;}
+  if(!act||act.invalid||!Number.isInteger(lots)||lots<=0||!Number.isFinite(exit)||exit<=0){
+    alert('請先完成實際進場價、張數與出場價格。');return;
+  }
+  if(!isLegalPrice(exit)){alert('出場價格不是合法台股檔位，請先確認。');return;}
+  const np=netProfitCalc(s,act);
+  if(!np){alert('目前無法計算此筆交易淨損益。');return;}
+  const entryAmount=act.entry*lots*1000;
+  const roi=entryAmount>0?np.net/entryAmount*100:0;
+  const sig=[s.tradeDate,mode,s.code,s.name,act.entry,lots,exit].join('|');
+  if(tradeHistory.some(x=>x.signature===sig)){
+    alert('這筆交易已經存入歷史成交紀錄。');return;
+  }
+  tradeHistory.push({
+    id:'h'+Date.now()+Math.random().toString(36).slice(2,7),
+    signature:sig,date:s.tradeDate||todayTradeDate(),savedAt:new Date().toISOString(),
+    mode,code:s.code||'',name:s.name||'',entry:act.entry,lots,exit,
+    net:np.net,roi,fee:np.fee,tax:np.tax
+  });
+  saveHistory();renderHistory();
+  alert('✓ 已存入歷史成交紀錄');
 }
 function tick(p){
   if(p<10)return .01;
@@ -287,6 +411,11 @@ function validationText(value){
   return {ok:false,text:'⚠ '+f(p)+' 不是此價位的合法台股檔位'};
 }
 function sw(m){
+  $('th')?.classList.remove('active');
+  if($('historyView'))$('historyView').style.display='none';
+  if($('list'))$('list').style.display='';
+  const topBar=document.querySelector('.bar');
+  if(topBar)topBar.style.display='';
   mode=m;
   $('ts').classList.toggle('active',m==='short');
   $('tl').classList.toggle('active',m==='long');
@@ -889,8 +1018,9 @@ function render(){
           <div id="plstatus${i}" class="pl-caption">輸入實際進場價、張數與預計出場價後自動計算</div>
         </div>
         <div id="trade-msg${i}" class="trade-message flat">完成這筆交易後，可以把紀錄存下來做盤後回顧。</div>
-        <div class="record-wrap">
-          <button class="record-btn" type="button" onclick="captureCard(${i})">📸 儲存此筆交易紀錄</button>
+        <div class="record-wrap" data-html2canvas-ignore="true" style="gap:8px;flex-wrap:wrap">
+          <button class="archive-btn" type="button" onclick="archiveTrade(${i})">✓ 完成交易並存入歷史紀錄</button>
+          <button class="record-btn" type="button" onclick="captureCard(${i})">📸 儲存此筆交易截圖</button>
         </div>
       </div>
     </div>
@@ -1157,6 +1287,7 @@ function toggleInfo(){
 
 save();
 render();
+renderHistory();
 startLiveTimer();
 </script>
 
