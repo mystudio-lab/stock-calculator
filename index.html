@@ -397,10 +397,65 @@ function renderHistory(){
     const icon=isShort?'🟢':'🔴';
     return `<div class="history-row">
       <button class="history-delete" onclick="deleteHistory('${h.id}')">刪除</button>
+      <button class="history-edit" onclick="editHistory('${h.id}')">編輯</button>
       <div class="line1">${h.date}｜${h.code?h.code+' ':''}${h.name||'未命名股票'}｜${icon} ${isShort?'做空':'做多'}｜${entryLabel} ${f(h.entry)}｜${h.lots}張｜${exitLabel} ${f(h.exit)}</div>
       <div class="line2 ${cls}">淨損益 ${h.net>0?'+':''}$${f(h.net)}｜報酬率 ${h.roi>0?'+':''}${Number(h.roi).toFixed(2)}%</div>
     </div>`;
   }).join('');
+}
+function editHistory(id){
+  const h=tradeHistory.find(x=>x.id===id);
+  if(!h)return;
+
+  const date=prompt('交易日期（YYYY/MM/DD）',h.date||'');
+  if(date===null)return;
+  const entry=prompt(h.mode==='short'?'實際放空價':'實際買進價',h.entry);
+  if(entry===null)return;
+  const lots=prompt('成交張數',h.lots);
+  if(lots===null)return;
+  const exit=prompt(h.mode==='short'?'實際回補價':'實際賣出價',h.exit);
+  if(exit===null)return;
+
+  const d=date.trim().replaceAll('-','/');
+  const e=parseFloat(entry),l=parseInt(lots,10),x=parseFloat(exit);
+  if(!/^\d{4}\/\d{2}\/\d{2}$/.test(d)){
+    alert('交易日期格式請輸入 YYYY/MM/DD');return;
+  }
+  if(!(Number.isFinite(e)&&e>0&&isLegalPrice(e)&&Number.isInteger(l)&&l>0&&Number.isFinite(x)&&x>0&&isLegalPrice(x))){
+    alert('請確認進場價、出場價與張數皆正確。');return;
+  }
+
+  const shares=l*1000;
+  const gross=(h.mode==='short'?(e-x):(x-e))*shares;
+
+  // 歷史紀錄以原交易當時存下來的折數重新估算；舊紀錄若沒有折數則沿用原淨損益比例，
+  // 避免編輯日期時意外改變舊交易損益。
+  let net=h.net;
+  if(h.feeDiscount!==undefined && h.feeDiscount!==null && h.feeDiscount!==''){
+    const discount=parseFloat(h.feeDiscount);
+    const entryAmt=e*shares,exitAmt=x*shares;
+    const rate=0.001425*(discount/10);
+    const commission=Math.floor(entryAmt*rate)+Math.floor(exitAmt*rate);
+    const sellAmt=h.mode==='short'?entryAmt:exitAmt;
+    const tax=Math.floor(sellAmt*0.0015);
+    net=gross-commission-tax;
+  }else{
+    // Existing V70-era records store the final net. Estimate using 10折 only when price/lot changed.
+    const changed=(e!==Number(h.entry)||x!==Number(h.exit)||l!==Number(h.lots));
+    if(changed){
+      const entryAmt=e*shares,exitAmt=x*shares;
+      const commission=Math.floor(entryAmt*0.001425)+Math.floor(exitAmt*0.001425);
+      const sellAmt=h.mode==='short'?entryAmt:exitAmt;
+      const tax=Math.floor(sellAmt*0.0015);
+      net=gross-commission-tax;
+    }
+  }
+
+  h.date=d; h.entry=e; h.lots=l; h.exit=x; h.net=net;
+  const base=e*shares;
+  h.roi=base>0?net/base*100:0;
+  h.signature=[d,h.mode,h.code,h.name,e,l,x].join('|');
+  saveHistory();renderHistory();
 }
 function deleteHistory(id){
   if(!confirm('確定刪除這筆歷史成交紀錄？'))return;
