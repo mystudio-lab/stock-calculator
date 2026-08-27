@@ -198,6 +198,42 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 }
 
 .history-stat:first-child strong{font-size:22px}
+
+.history-edit-modal{position:fixed;inset:0;background:rgba(15,23,42,.38);display:none;align-items:center;justify-content:center;z-index:10020;padding:18px}
+.history-edit-modal.show{display:flex}
+.history-edit-panel{width:min(520px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(15,23,42,.25);padding:18px}
+.history-edit-title{font-weight:900;font-size:17px;margin-bottom:14px;color:#172033}
+.history-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.history-edit-field label{display:block;font-size:12px;font-weight:800;color:#64748b;margin-bottom:5px}
+.history-edit-field input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:9px;font-size:14px;font-weight:700}
+.history-edit-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
+.history-edit-actions button{border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer}
+.history-edit-cancel{border:1px solid #cbd5e1;background:#fff;color:#475569}
+.history-edit-save{border:1px solid #172033;background:#172033;color:#fff}
+@media(max-width:520px){.history-edit-grid{grid-template-columns:1fr}}
+
+.history-row{position:relative;padding-right:90px !important}
+.history-actions{
+  position:absolute !important;
+  top:10px;
+  right:4px;
+  display:flex !important;
+  gap:10px;
+  align-items:center;
+  white-space:nowrap;
+  float:none !important;
+}
+.history-edit,.history-delete{
+  float:none !important;
+  border:0;
+  background:transparent;
+  cursor:pointer;
+  font-size:12px;
+  padding:0;
+}
+.history-edit{color:#2563eb}
+.history-delete{color:#94a3b8}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
@@ -251,6 +287,24 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
         <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、實際出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>實際出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>報酬率（估）</b>以歷史成交紀錄的累積淨損益 ÷ 累積已實現交易成本計算；做多採買進金額、做空採回補金額作為成本基礎。此為網站估算值，券商實際「已出帳投資總額」可能因入帳與費用認列方式略有差異。</div><div class="info-item"><b>月退手續費預估</b>依所選月份歷史成交紀錄，自動彙總買賣雙邊牌告手續費，優惠折數可自行修改並會自動記住；買賣兩邊10折手續費各自以整數元計算後加總，再估算月退：10折手續費 ×（1－優惠折數÷10）。不納入證交稅。實際退費以券商入帳為準。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；實際出場價格填入後仍需按「完成交易並存入歷史紀錄」才會正式歸檔。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="historyEditModal" class="history-edit-modal" onclick="if(event.target===this)closeHistoryEdit()">
+  <div class="history-edit-panel">
+    <div class="history-edit-title">✏️ 編輯歷史成交紀錄</div>
+    <input id="he-id" type="hidden">
+    <div class="history-edit-grid">
+      <div class="history-edit-field"><label>交易日期</label><input id="he-date" type="date"></div>
+      <div class="history-edit-field"><label id="he-entry-label">實際進場價</label><input id="he-entry" type="number" step=".01"></div>
+      <div class="history-edit-field"><label>成交張數</label><input id="he-lots" type="number" min="1" step="1"></div>
+      <div class="history-edit-field"><label id="he-exit-label">實際出場價</label><input id="he-exit" type="number" step=".01"></div>
+    </div>
+    <div class="history-edit-actions">
+      <button class="history-edit-cancel" type="button" onclick="closeHistoryEdit()">取消</button>
+      <button class="history-edit-save" type="button" onclick="saveHistoryEdit()">儲存修改</button>
     </div>
   </div>
 </div>
@@ -396,8 +450,10 @@ function renderHistory(){
     const exitLabel=isShort?'回補':'賣出';
     const icon=isShort?'🟢':'🔴';
     return `<div class="history-row">
-      <button class="history-delete" onclick="deleteHistory('${h.id}')">刪除</button>
-      <button class="history-edit" onclick="editHistory('${h.id}')">編輯</button>
+      <span class="history-actions">
+        <button class="history-edit" onclick="editHistory('${h.id}')">編輯</button>
+        <button class="history-delete" onclick="deleteHistory('${h.id}')">刪除</button>
+      </span>
       <div class="line1">${h.date}｜${h.code?h.code+' ':''}${h.name||'未命名股票'}｜${icon} ${isShort?'做空':'做多'}｜${entryLabel} ${f(h.entry)}｜${h.lots}張｜${exitLabel} ${f(h.exit)}</div>
       <div class="line2 ${cls}">淨損益 ${h.net>0?'+':''}$${f(h.net)}｜報酬率 ${h.roi>0?'+':''}${Number(h.roi).toFixed(2)}%</div>
     </div>`;
@@ -406,56 +462,51 @@ function renderHistory(){
 function editHistory(id){
   const h=tradeHistory.find(x=>x.id===id);
   if(!h)return;
-
-  const date=prompt('交易日期（YYYY/MM/DD）',h.date||'');
-  if(date===null)return;
-  const entry=prompt(h.mode==='short'?'實際放空價':'實際買進價',h.entry);
-  if(entry===null)return;
-  const lots=prompt('成交張數',h.lots);
-  if(lots===null)return;
-  const exit=prompt(h.mode==='short'?'實際回補價':'實際賣出價',h.exit);
-  if(exit===null)return;
-
-  const d=date.trim().replaceAll('-','/');
-  const e=parseFloat(entry),l=parseInt(lots,10),x=parseFloat(exit);
+  $('he-id').value=id;
+  $('he-date').value=(h.date||todayTradeDate()).replaceAll('/','-');
+  $('he-entry').value=h.entry;
+  $('he-lots').value=h.lots;
+  $('he-exit').value=h.exit;
+  $('he-entry-label').textContent=h.mode==='short'?'實際放空價':'實際買進價';
+  $('he-exit-label').textContent=h.mode==='short'?'實際回補價':'實際賣出價';
+  $('historyEditModal').classList.add('show');
+}
+function closeHistoryEdit(){
+  $('historyEditModal').classList.remove('show');
+}
+function saveHistoryEdit(){
+  const id=$('he-id').value;
+  const h=tradeHistory.find(x=>x.id===id);
+  if(!h)return;
+  const d=$('he-date').value.replaceAll('-','/');
+  const e=parseFloat($('he-entry').value);
+  const l=parseInt($('he-lots').value,10);
+  const x=parseFloat($('he-exit').value);
   if(!/^\d{4}\/\d{2}\/\d{2}$/.test(d)){
-    alert('交易日期格式請輸入 YYYY/MM/DD');return;
+    alert('請確認交易日期。');return;
   }
   if(!(Number.isFinite(e)&&e>0&&isLegalPrice(e)&&Number.isInteger(l)&&l>0&&Number.isFinite(x)&&x>0&&isLegalPrice(x))){
     alert('請確認進場價、出場價與張數皆正確。');return;
   }
-
   const shares=l*1000;
   const gross=(h.mode==='short'?(e-x):(x-e))*shares;
-
-  // 歷史紀錄以原交易當時存下來的折數重新估算；舊紀錄若沒有折數則沿用原淨損益比例，
-  // 避免編輯日期時意外改變舊交易損益。
+  const changed=(e!==Number(h.entry)||x!==Number(h.exit)||l!==Number(h.lots));
   let net=h.net;
-  if(h.feeDiscount!==undefined && h.feeDiscount!==null && h.feeDiscount!==''){
-    const discount=parseFloat(h.feeDiscount);
+  if(changed){
+    const discount=(h.feeDiscount!==undefined&&h.feeDiscount!==null&&h.feeDiscount!=='')
+      ?parseFloat(h.feeDiscount):10;
     const entryAmt=e*shares,exitAmt=x*shares;
     const rate=0.001425*(discount/10);
     const commission=Math.floor(entryAmt*rate)+Math.floor(exitAmt*rate);
     const sellAmt=h.mode==='short'?entryAmt:exitAmt;
     const tax=Math.floor(sellAmt*0.0015);
     net=gross-commission-tax;
-  }else{
-    // Existing V70-era records store the final net. Estimate using 10折 only when price/lot changed.
-    const changed=(e!==Number(h.entry)||x!==Number(h.exit)||l!==Number(h.lots));
-    if(changed){
-      const entryAmt=e*shares,exitAmt=x*shares;
-      const commission=Math.floor(entryAmt*0.001425)+Math.floor(exitAmt*0.001425);
-      const sellAmt=h.mode==='short'?entryAmt:exitAmt;
-      const tax=Math.floor(sellAmt*0.0015);
-      net=gross-commission-tax;
-    }
   }
-
-  h.date=d; h.entry=e; h.lots=l; h.exit=x; h.net=net;
+  h.date=d;h.entry=e;h.lots=l;h.exit=x;h.net=net;
   const base=e*shares;
   h.roi=base>0?net/base*100:0;
   h.signature=[d,h.mode,h.code,h.name,e,l,x].join('|');
-  saveHistory();renderHistory();
+  saveHistory();closeHistoryEdit();renderHistory();
 }
 function deleteHistory(id){
   if(!confirm('確定刪除這筆歷史成交紀錄？'))return;
