@@ -114,7 +114,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 .history-toggle{width:100%;border:0;background:#f8fafc;padding:12px 14px;text-align:left;font-weight:900;color:#334155;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
 .history-body{display:none;padding:12px 14px}
 .history-body.open{display:block}
-.history-stats{display:grid;grid-template-columns:1.4fr repeat(4,1fr);gap:8px;margin-bottom:10px}
+.history-stats{display:grid;grid-template-columns:1.4fr 1.2fr repeat(4,1fr);gap:8px;margin-bottom:10px}
 .history-stat{background:#f8fafc;border:1px solid #e8edf3;border-radius:10px;padding:9px;text-align:center}
 .history-stat small{display:block;color:#64748b;font-weight:700;margin-bottom:3px}
 .history-stat strong{font-size:16px;color:#172033}
@@ -196,6 +196,8 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
   .tabs-three{grid-template-columns:repeat(3,1fr)}
   .tabs-three .tab{font-size:12px;padding:10px 4px}
 }
+
+.history-stat:first-child strong{font-size:22px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
@@ -247,7 +249,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
         <div class="info-item"><b>2.5% 最大停損警戒價</b>依實際進場價計算最大風控界線；做空不超過進場價 +2.5%，做多不超過進場價 −2.5%，並轉為不突破 2.5% 的合法台股檔位。此價格不是建議停損點，第一道停損仍以實際進場 ±2T 為主。</div><div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
-        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>月退手續費預估</b>依所選月份歷史成交紀錄，自動彙總買賣雙邊牌告手續費，優惠折數可自行修改並會自動記住；預估月退＝10折手續費 ×（1－優惠折數÷10）。不納入證交稅。實際退費以券商入帳為準。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
+        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>已實現損益率</b>以歷史成交紀錄的累積淨損益 ÷ 累積已實現交易成本計算；做多採買進金額、做空採回補金額作為成本基礎。此為網站估算值，券商實際「已出帳投資總額」可能因入帳與費用認列方式略有差異。</div><div class="info-item"><b>月退手續費預估</b>依所選月份歷史成交紀錄，自動彙總買賣雙邊牌告手續費，優惠折數可自行修改並會自動記住；預估月退＝10折手續費 ×（1－優惠折數÷10）。不納入證交稅。實際退費以券商入帳為準。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
     </div>
   </div>
@@ -360,10 +362,18 @@ function renderHistory(){
   const wins=tradeHistory.filter(x=>x.net>0).length;
   const losses=tradeHistory.filter(x=>x.net<0).length;
   const net=tradeHistory.reduce((a,x)=>a+(Number(x.net)||0),0);
+  const realizedBase=tradeHistory.reduce((a,x)=>{
+    const lots=Number(x.lots)||0;
+    const px=x.mode==='short'?(Number(x.exit)||0):(Number(x.entry)||0);
+    return a+px*lots*1000;
+  },0);
+  const realizedRate=realizedBase>0?net/realizedBase*100:0;
   const winRate=total?wins/total*100:0;
   const netClass=net>0?'profit':net<0?'loss':'flat';
+  const rateClass=realizedRate>0?'profit':realizedRate<0?'loss':'flat';
   stats.innerHTML=`<div class="history-stats">
     <div class="history-stat"><small>累積淨損益</small><strong class="${netClass}">${net>0?'+':''}$${f(net)}</strong></div>
+    <div class="history-stat"><small>已實現損益率</small><strong class="${rateClass}">${realizedRate>0?'+':''}${realizedRate.toFixed(2)}%</strong></div>
     <div class="history-stat"><small>總筆數</small><strong>${total}筆</strong></div>
     <div class="history-stat"><small>獲利</small><strong>${wins}筆</strong></div>
     <div class="history-stat"><small>虧損</small><strong>${losses}筆</strong></div>
