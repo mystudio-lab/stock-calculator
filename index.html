@@ -249,7 +249,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
         <div class="info-item"><b>2.5% 風控</b>預估停損金額 ≤ 預估進場金額的 2.5% 為老師較嚴格的風控範圍；超過並非絕對不能做。</div>
         <div class="info-item"><b>2.5% 最大停損警戒價</b>依實際進場價計算最大風控界線；做空不超過進場價 +2.5%，做多不超過進場價 −2.5%，並轉為不突破 2.5% 的合法台股檔位。此價格不是建議停損點，第一道停損仍以實際進場 ±2T 為主。</div><div class="info-item"><b>成交後管理</b>真正成交後，第一道停損改依「實際進場價 ±2T」計算；當獲利超過損益平衡點 3T 後，再設定第二道停損於損益平衡點。</div>
         <div class="info-item"><b>損益平衡點約 0.3% 交易成本</b>用於涵蓋交易稅、券商手續費等交易成本，實際成本依券商費率而異；先算理論價，再往獲利方向取合法檔位。</div>
-        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、預計出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>預計出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>已實現損益率</b>以歷史成交紀錄的累積淨損益 ÷ 累積已實現交易成本計算；做多採買進金額、做空採回補金額作為成本基礎。此為網站估算值，券商實際「已出帳投資總額」可能因入帳與費用認列方式略有差異。</div><div class="info-item"><b>月退手續費預估</b>依所選月份歷史成交紀錄，自動彙總買賣雙邊牌告手續費，優惠折數可自行修改並會自動記住；預估月退＝10折手續費 ×（1－優惠折數÷10）。不納入證交稅。實際退費以券商入帳為準。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；預計出場價格本身不會自動成為歷史成交。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
+        <div class="info-item"><b>手續費計算折數</b>月退制若要對照券商當下顯示的即時損益，請輸入 10 折；若要估算月退後的最終損益，再輸入實際優惠折數。</div><div class="info-item"><b>預估淨損益</b>依實際進場價、張數、實際出場價與手續費折數計算。手續費以成交金額 × 0.1425% × 折數／10，買賣兩邊分別計算並以整數元處理；股票當沖證交稅以賣出成交金額 × 0.15% 計。未納入券商最低手續費或其他個別費用。</div><div class="info-item"><b>盤中快捷</b>實際出場價可一鍵帶入「停損／損益平衡」；實際停損金額會依進場張數自動計算。</div><div class="info-item"><b>即時行情（測試）</b>已進場股票每 5 秒嘗試讀取一次臺灣證交所 MIS 最新成交價，並以「若現在出場」重新估算淨損益。因 GitHub Pages 為純前端，需透過公開 CORS proxy；若代理服務暫時不可用，行情可能更新失敗。</div><div class="info-item"><b>手續費估算</b>手續費尾數依目前券商帳務方式估算，不同券商的最低手續費、折讓與尾數處理可能略有差異。</div><div class="info-item"><b>交易截圖</b>每支股票可在預估淨損益下方按「📸 儲存此筆交易紀錄」，系統會先產生交易紀錄預覽（不包含即時股價區塊）；確認畫面後再按「下載 PNG」存檔。檔名包含日期、股票代號、名稱與做多／做空方向。</div><div class="info-item"><b>交易日期</b>每筆股票預設帶入建立當日，也可在「實際成交後管理」手動修改日期，方便補登前幾天的成交紀錄。</div><div class="info-item"><b>報酬率（估）</b>以歷史成交紀錄的累積淨損益 ÷ 累積已實現交易成本計算；做多採買進金額、做空採回補金額作為成本基礎。此為網站估算值，券商實際「已出帳投資總額」可能因入帳與費用認列方式略有差異。</div><div class="info-item"><b>月退手續費預估</b>依所選月份歷史成交紀錄，自動彙總買賣雙邊牌告手續費，優惠折數可自行修改並會自動記住；買賣兩邊10折手續費各自以整數元計算後加總，再估算月退：10折手續費 ×（1－優惠折數÷10）。不納入證交稅。實際退費以券商入帳為準。</div><div class="info-item"><b>歷史成交紀錄</b>只有按「完成交易並存入歷史紀錄」才會正式保存；實際出場價格填入後仍需按「完成交易並存入歷史紀錄」才會正式歸檔。歷史紀錄與做多／做空觀察清單分開保存，清除今日清單不會刪除歷史紀錄。</div><div class="info-item"><b>提醒</b>本工具僅供策略試算，不構成投資建議。</div>
       </div>
     </div>
   </div>
@@ -348,8 +348,8 @@ function renderRebate(){
     if(!(h.date||'').startsWith(ym))return;
     const entry=Number(h.entry),exit=Number(h.exit),lots=Number(h.lots);
     if(!(entry>0&&exit>0&&lots>0))return;
-    const entryFee=Math.round(entry*lots*1000*0.001425);
-    const exitFee=Math.round(exit*lots*1000*0.001425);
+    const entryFee=Math.floor(entry*lots*1000*0.001425);
+    const exitFee=Math.floor(exit*lots*1000*0.001425);
     fullFee+=entryFee+exitFee;
   });
   const refund=Math.round(fullFee*(1-discount/10));
@@ -373,7 +373,7 @@ function renderHistory(){
   const rateClass=realizedRate>0?'profit':realizedRate<0?'loss':'flat';
   stats.innerHTML=`<div class="history-stats">
     <div class="history-stat"><small>累積淨損益</small><strong class="${netClass}">${net>0?'+':''}$${f(net)}</strong></div>
-    <div class="history-stat"><small>已實現損益率</small><strong class="${rateClass}">${realizedRate>0?'+':''}${realizedRate.toFixed(2)}%</strong></div>
+    <div class="history-stat"><small>報酬率（估）</small><strong class="${rateClass}">${realizedRate>0?'+':''}${realizedRate.toFixed(2)}%</strong></div>
     <div class="history-stat"><small>總筆數</small><strong>${total}筆</strong></div>
     <div class="history-stat"><small>獲利</small><strong>${wins}筆</strong></div>
     <div class="history-stat"><small>虧損</small><strong>${losses}筆</strong></div>
@@ -430,7 +430,7 @@ function archiveTrade(i){
     id:'h'+Date.now()+Math.random().toString(36).slice(2,7),
     signature:sig,date:s.tradeDate||todayTradeDate(),savedAt:new Date().toISOString(),
     mode,code:s.code||'',name:s.name||'',entry:act.entry,lots,exit,
-    net:np.net,roi,fee:np.fee,tax:np.tax
+    net:np.net,roi,fee:np.commission,tax:np.tax
   });
   saveHistory();renderHistory();
   alert('✓ 已存入歷史成交紀錄');
@@ -923,7 +923,7 @@ function renderLive(i){
     if(priceEl)priceEl.textContent='—';
     if(plEl){plEl.textContent='—';plEl.className='live-pl live-flat'}
     if(status)status.innerHTML=q.error?`<span class="live-error">⚠ ${q.error}</span>`:'等待行情更新；若目前已收盤，系統會自動嘗試取得收盤價格…';
-    if(source)source.textContent='若自動行情暫時無法使用，仍可用「預計出場價格（目標試算）」計算淨損益。';
+    if(source)source.textContent='若自動行情暫時無法使用，仍可用「實際出場價格」計算淨損益。';
   }
 }
 function startLiveTimer(){
@@ -1048,7 +1048,7 @@ function render(){
             <div class="validation" id="v-actualLots${i}"></div>
           </div>
           <div class="field actual-input">
-            <label>預計出場價格（目標試算） <span class="badge">手動輸入</span></label>
+            <label>${mode==='short'?'實際回補價':'實際賣出價'} <span class="badge">手動輸入</span></label>
             <input id="in-plannedExit${i}" type="number" step=".01" value="${s.plannedExit||''}" oninput="setv(${i},'plannedExit',this.value)">
             <div id="v-plannedExit${i}" class="validation"></div>
             <div class="quick-row">
@@ -1099,7 +1099,7 @@ function render(){
         <div id="plhero${i}" class="pl-hero even">
           <div class="pl-label">預估淨損益｜已扣手續費＋當沖證交稅</div>
           <div id="apl${i}" class="pl-amount">—</div>
-          <div id="plstatus${i}" class="pl-caption">輸入實際進場價、張數與預計出場價後自動計算</div>
+          <div id="plstatus${i}" class="pl-caption">輸入實際進場價、張數與實際出場價後自動計算</div>
         </div>
         <div id="trade-msg${i}" class="trade-message flat">完成這筆交易後，可以把紀錄存下來做盤後回顧。</div>
         <div class="record-wrap" data-html2canvas-ignore="true" style="gap:8px;flex-wrap:wrap">
@@ -1203,7 +1203,7 @@ function calc(i){
       if(apl) apl.textContent='—';
       if(alots) alots.textContent=Number.isInteger(lots)&&lots>0?lots+' 張':'—';
       if(plh) plh.className='pl-hero even';
-      if(pls) pls.textContent='輸入實際進場價、張數、預計出場價與手續費折數後，自動計算淨損益';
+      if(pls) pls.textContent='輸入實際進場價、張數、實際出場價與手續費折數後，自動計算淨損益';
       if(tmsg){tmsg.className='trade-message flat';tmsg.textContent='完成這筆交易後，可以把紀錄存下來做盤後回顧。';}
     }
   }else{
@@ -1216,7 +1216,7 @@ function calc(i){
     if(apl) apl.textContent='—';
     if(alots) alots.textContent=s.actualLots?s.actualLots+' 張':'—';
     if(plh) plh.className='pl-hero even';
-    if(pls) pls.textContent='輸入實際進場價、張數、預計出場價與手續費折數後，自動計算淨損益';
+    if(pls) pls.textContent='輸入實際進場價、張數、實際出場價與手續費折數後，自動計算淨損益';
     if(tmsg){tmsg.className='trade-message flat';tmsg.textContent='完成這筆交易後，可以把紀錄存下來做盤後回顧。';}
   }
 }
@@ -1264,10 +1264,6 @@ async function copyCaptureImage(){
   }
 }
 
-function closeCapturePreview(){
-  const modal=$('capture-modal');
-  if(modal)modal.classList.remove('show');
-}
 function closeCapturePreview(){
   const modal=$('capture-modal');
   if(modal)modal.classList.remove('show');
