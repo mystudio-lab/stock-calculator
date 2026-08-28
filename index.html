@@ -263,7 +263,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
     <div class="rebate-box">
       <div class="rebate-field">
         <label>💰 月退手續費預估｜月份</label>
-        <input id="rebateMonth" type="month" onchange="renderRebate()">
+        <input id="rebateMonth" type="month" onchange="renderHistory()">
       </div>
       <div class="rebate-field">
         <label>優惠折數</label>
@@ -412,11 +412,15 @@ function renderRebate(){
 function renderHistory(){
   const stats=$('historyStats'),list=$('historyList');
   if(!stats||!list)return;
-  const total=tradeHistory.length;
-  const wins=tradeHistory.filter(x=>x.net>0).length;
-  const losses=tradeHistory.filter(x=>x.net<0).length;
-  const net=tradeHistory.reduce((a,x)=>a+(Number(x.net)||0),0);
-  const realizedBase=tradeHistory.reduce((a,x)=>{
+  const monthInput=$('rebateMonth');
+  if(monthInput&&!monthInput.value)monthInput.value=historyMonthDefault();
+  const selectedYM=(monthInput&&monthInput.value?monthInput.value:historyMonthDefault()).replace('-','/');
+  const monthlyHistory=tradeHistory.filter(h=>(h.date||'').startsWith(selectedYM));
+  const total=monthlyHistory.length;
+  const wins=monthlyHistory.filter(x=>(Number(x.net)||0)>0).length;
+  const losses=monthlyHistory.filter(x=>(Number(x.net)||0)<0).length;
+  const net=monthlyHistory.reduce((a,x)=>a+(Number(x.net)||0),0);
+  const realizedBase=monthlyHistory.reduce((a,x)=>{
     const lots=Number(x.lots)||0;
     const px=x.mode==='short'?(Number(x.exit)||0):(Number(x.entry)||0);
     return a+px*lots*1000;
@@ -426,7 +430,7 @@ function renderHistory(){
   const netClass=net>0?'profit':net<0?'loss':'flat';
   const rateClass=realizedRate>0?'profit':realizedRate<0?'loss':'flat';
   stats.innerHTML=`<div class="history-stats">
-    <div class="history-stat"><small>累積淨損益</small><strong class="${netClass}">${net>0?'+':''}$${f(net)}</strong></div>
+    <div class="history-stat"><small>本月淨損益</small><strong class="${netClass}">${net>0?'+':''}$${f(net)}</strong></div>
     <div class="history-stat"><small>報酬率（估）</small><strong class="${rateClass}">${realizedRate>0?'+':''}${realizedRate.toFixed(2)}%</strong></div>
     <div class="history-stat"><small>總筆數</small><strong>${total}筆</strong></div>
     <div class="history-stat"><small>獲利</small><strong>${wins}筆</strong></div>
@@ -434,12 +438,13 @@ function renderHistory(){
     <div class="history-stat"><small>勝率</small><strong>${winRate.toFixed(1)}%</strong></div>
   </div>`;
   renderRebate();
-  if($('ch'))$('ch').textContent=total;
+  if($('ch'))$('ch').textContent=tradeHistory.length;
   if(!total){
-    list.innerHTML='<div class="history-empty">尚無已完成的歷史成交紀錄</div>';
+    const [yy,mm]=selectedYM.split('/');
+    list.innerHTML=`<div class="history-empty">尚無 ${yy}年${mm}月成交紀錄</div>`;
     return;
   }
-  list.innerHTML=tradeHistory.slice().sort((a,b)=>{
+  list.innerHTML=monthlyHistory.slice().sort((a,b)=>{
     const dateCmp=(b.date||'').localeCompare(a.date||'');
     if(dateCmp!==0)return dateCmp;
     return (b.savedAt||'').localeCompare(a.savedAt||'');
