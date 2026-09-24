@@ -407,10 +407,10 @@ function toggleHistoryFilter(){
   $('historyRangeStartField').style.display=range?'block':'none';
   $('historyRangeEndField').style.display=range?'block':'none';
   if(range){
-    const [y,m]=($('rebateMonth').value||historyMonthDefault()).split('-').map(Number);
-    const last=new Date(y,m,0).getDate();
-    if(!$('historyStartDate').value)$('historyStartDate').value=`${y}-${String(m).padStart(2,'0')}-01`;
-    if(!$('historyEndDate').value)$('historyEndDate').value=`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`;
+    const now=new Date();
+    const localToday=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    $('historyStartDate').value=localToday;
+    $('historyEndDate').value=localToday;
   }
   renderHistory();
 }
