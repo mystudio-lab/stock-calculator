@@ -120,7 +120,7 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
 .history-stat strong{font-size:16px;color:#172033}
 .rebate-box{display:flex;align-items:end;gap:12px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e8edf3;border-radius:12px;padding:11px 12px;margin:10px 0 12px}
 .rebate-field label{display:block;font-size:11px;font-weight:800;color:#64748b;margin-bottom:4px}
-.rebate-field input{width:130px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-weight:800;color:#334155}
+.rebate-field input,.rebate-field select{width:130px;padding:7px 9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-weight:800;color:#334155}
 .rebate-discount{font-size:13px;color:#475569;font-weight:800;padding-bottom:7px}
 .rebate-total{margin-left:auto;text-align:right}
 .rebate-total small{display:block;color:#64748b;font-weight:800}
@@ -261,10 +261,10 @@ body{margin:0;background:var(--bg);font-family:"Microsoft JhengHei","Noto Sans T
     <div class="history-page-title">📚 歷史成交紀錄</div>
     <div id="historyStats"></div>
     <div class="rebate-box">
-      <div class="rebate-field">
-        <label>💰 月退手續費預估｜月份</label>
-        <input id="rebateMonth" type="month" onchange="renderHistory()">
-      </div>
+      <div class="rebate-field"><label>📅 查詢方式</label><select id="historyFilterMode" onchange="toggleHistoryFilter()"><option value="month">整月</option><option value="range">自訂日期</option></select></div>
+      <div class="rebate-field" id="historyMonthField"><label>月份</label><input id="rebateMonth" type="month" onchange="renderHistory()"></div>
+      <div class="rebate-field" id="historyRangeStartField" style="display:none"><label>開始日期</label><input id="historyStartDate" type="date" onchange="renderHistory()"></div>
+      <div class="rebate-field" id="historyRangeEndField" style="display:none"><label>結束日期</label><input id="historyEndDate" type="date" onchange="renderHistory()"></div>
       <div class="rebate-field">
         <label>優惠折數</label>
         <input id="rebateDiscount" type="number" min="0.1" max="10" step="0.1" value="1.8" oninput="setRebateDiscount(this.value)">
@@ -390,16 +390,40 @@ function historyMonthDefault(){
   const dates=tradeHistory.map(x=>x.date||'').filter(Boolean).sort().reverse();
   return (dates[0]||todayTradeDate()).slice(0,7).replace('/','-');
 }
+function getHistoryFilter(){
+  const mode=$('historyFilterMode')?$('historyFilterMode').value:'month';
+  if(mode==='range'){
+    return {mode,start:($('historyStartDate').value||'').replaceAll('-','/'),end:($('historyEndDate').value||'').replaceAll('-','/')};
+  }
+  return {mode:'month',ym:($('rebateMonth').value||historyMonthDefault()).replace('-','/')};
+}
+function historyMatchesFilter(h,f){
+  const d=h.date||'';
+  return f.mode==='range' ? (!!f.start&&!!f.end&&d>=f.start&&d<=f.end) : d.startsWith(f.ym);
+}
+function toggleHistoryFilter(){
+  const range=$('historyFilterMode').value==='range';
+  $('historyMonthField').style.display=range?'none':'block';
+  $('historyRangeStartField').style.display=range?'block':'none';
+  $('historyRangeEndField').style.display=range?'block':'none';
+  if(range){
+    const [y,m]=($('rebateMonth').value||historyMonthDefault()).split('-').map(Number);
+    const last=new Date(y,m,0).getDate();
+    if(!$('historyStartDate').value)$('historyStartDate').value=`${y}-${String(m).padStart(2,'0')}-01`;
+    if(!$('historyEndDate').value)$('historyEndDate').value=`${y}-${String(m).padStart(2,'0')}-${String(last).padStart(2,'0')}`;
+  }
+  renderHistory();
+}
 function renderRebate(){
   const inp=$('rebateMonth'),out=$('rebateAmount'),discountEl=$('rebateDiscount');
   if(!inp||!out)return;
   if(!inp.value)inp.value=historyMonthDefault();
   const discount=getRebateDiscount();
   if(discountEl && document.activeElement!==discountEl) discountEl.value=discount;
-  const ym=inp.value.replace('-','/');
+  const filter=getHistoryFilter();
   let fullFee=0;
   tradeHistory.forEach(h=>{
-    if(!(h.date||'').startsWith(ym))return;
+    if(!historyMatchesFilter(h,filter))return;
     const entry=Number(h.entry),exit=Number(h.exit),lots=Number(h.lots);
     if(!(entry>0&&exit>0&&lots>0))return;
     const entryFee=Math.floor(entry*lots*1000*0.001425);
@@ -408,14 +432,16 @@ function renderRebate(){
   });
   const refund=Math.round(fullFee*(1-discount/10));
   out.textContent='$'+f(refund);
+  const lab=out.previousElementSibling;
+  if(lab)lab.textContent=filter.mode==='range'?'區間預估退手續費':'預估月退手續費';
 }
 function renderHistory(){
   const stats=$('historyStats'),list=$('historyList');
   if(!stats||!list)return;
   const monthInput=$('rebateMonth');
   if(monthInput&&!monthInput.value)monthInput.value=historyMonthDefault();
-  const selectedYM=(monthInput&&monthInput.value?monthInput.value:historyMonthDefault()).replace('-','/');
-  const monthlyHistory=tradeHistory.filter(h=>(h.date||'').startsWith(selectedYM));
+  const filter=getHistoryFilter();
+  const monthlyHistory=tradeHistory.filter(h=>historyMatchesFilter(h,filter));
   const total=monthlyHistory.length;
   const wins=monthlyHistory.filter(x=>(Number(x.net)||0)>0).length;
   const losses=monthlyHistory.filter(x=>(Number(x.net)||0)<0).length;
@@ -430,7 +456,7 @@ function renderHistory(){
   const netClass=net>0?'profit':net<0?'loss':'flat';
   const rateClass=realizedRate>0?'profit':realizedRate<0?'loss':'flat';
   stats.innerHTML=`<div class="history-stats">
-    <div class="history-stat"><small>本月淨損益</small><strong class="${netClass}">${net>0?'+':''}$${f(net)}</strong></div>
+    <div class="history-stat"><small>${filter.mode==='range'?'區間淨損益':'本月淨損益'}</small><strong class="${netClass}">${net>0?'+':''}$${f(net)}</strong></div>
     <div class="history-stat"><small>報酬率（估）</small><strong class="${rateClass}">${realizedRate>0?'+':''}${realizedRate.toFixed(2)}%</strong></div>
     <div class="history-stat"><small>總筆數</small><strong>${total}筆</strong></div>
     <div class="history-stat"><small>獲利</small><strong>${wins}筆</strong></div>
@@ -440,8 +466,12 @@ function renderHistory(){
   renderRebate();
   if($('ch'))$('ch').textContent=tradeHistory.length;
   if(!total){
-    const [yy,mm]=selectedYM.split('/');
-    list.innerHTML=`<div class="history-empty">尚無 ${yy}年${mm}月成交紀錄</div>`;
+    if(filter.mode==='range'){
+      list.innerHTML=`<div class="history-empty">尚無 ${filter.start||'開始日期'} ～ ${filter.end||'結束日期'} 成交紀錄</div>`;
+    }else{
+      const [yy,mm]=filter.ym.split('/');
+      list.innerHTML=`<div class="history-empty">尚無 ${yy}年${mm}月成交紀錄</div>`;
+    }
     return;
   }
   list.innerHTML=monthlyHistory.slice().sort((a,b)=>{
